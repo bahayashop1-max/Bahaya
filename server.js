@@ -24,6 +24,14 @@ const STATE_FILE = path.join(DATA_DIR, 'state.json');
 
 const SERVICES = ['MoneyGram', 'Ria', 'Western Union'];
 
+// Admin-adgangskode. Saettes som miljoevariabel ADMIN_PASSWORD paa Railway.
+// (Standardvaerdien her bruges kun hvis variablen ikke er sat.)
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'skift-mig';
+
+function isAdmin(req) {
+  return req.headers['x-admin-key'] === ADMIN_PASSWORD;
+}
+
 // ---------------------------------------------------------------------------
 // State (køens data)
 // ---------------------------------------------------------------------------
@@ -154,6 +162,13 @@ function serveFile(res, filePath) {
 async function handleApi(req, res, url) {
   const route = url.pathname;
 
+  // Admin-login (staff-siden tjekker adgangskoden her)
+  if (route === '/api/login' && req.method === 'POST') {
+    const body = await readBody(req);
+    if ((body.password || '') === ADMIN_PASSWORD) return sendJson(res, 200, { ok: true });
+    return sendJson(res, 401, { error: 'wrong_password' });
+  }
+
   // Fælles state (kunde, staff, display bruger denne)
   if (route === '/api/state' && req.method === 'GET') {
     return sendJson(res, 200, publicState());
@@ -205,6 +220,7 @@ async function handleApi(req, res, url) {
 
   // Staff kalder en kunde ind
   if (route === '/api/call' && req.method === 'POST') {
+    if (!isAdmin(req)) return sendJson(res, 401, { error: 'unauthorized' });
     const body = await readBody(req);
     const ticket = state.tickets.find(t => t.id === body.id);
     if (!ticket) return sendJson(res, 404, { error: 'not_found' });
@@ -224,6 +240,7 @@ async function handleApi(req, res, url) {
 
   // Staff markerer en kunde som færdig (fjernes fra listen)
   if (route === '/api/done' && req.method === 'POST') {
+    if (!isAdmin(req)) return sendJson(res, 401, { error: 'unauthorized' });
     const body = await readBody(req);
     const ticket = state.tickets.find(t => t.id === body.id);
     if (!ticket) return sendJson(res, 404, { error: 'not_found' });
@@ -234,6 +251,7 @@ async function handleApi(req, res, url) {
 
   // Staff nulstiller alle numre
   if (route === '/api/reset' && req.method === 'POST') {
+    if (!isAdmin(req)) return sendJson(res, 401, { error: 'unauthorized' });
     state.nextNumber = 1;
     state.tickets = [];
     state.lastCalled = null;
