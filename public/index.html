@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Bahaya Shop - Kø / Saf</title>
+<style>
+  :root{
+    --bg:#0f172a; --card:#1e293b; --line:#334155;
+    --text:#f1f5f9; --muted:#94a3b8;
+    --green:#22c55e; --blue:#3b82f6; --amber:#f59e0b;
+    --brand:#0ea5e9;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{
+    margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    background:var(--bg);color:var(--text);
+    min-height:100vh;padding:20px 16px 40px;
+  }
+  .wrap{max-width:480px;margin:0 auto}
+  header{text-align:center;margin-bottom:22px}
+  .logo{font-size:30px;font-weight:800;letter-spacing:1px;color:#fff}
+  .logo span{color:var(--brand)}
+  .sub{color:var(--muted);margin-top:6px;font-size:15px}
+  h2{font-size:17px;margin:24px 0 12px;font-weight:700}
+  h2 small{display:block;color:var(--muted);font-weight:500;font-size:13px;margin-top:2px}
+
+  .services{display:grid;gap:12px}
+  .service-btn{
+    display:flex;align-items:center;gap:14px;
+    background:var(--card);border:2px solid var(--line);
+    border-radius:16px;padding:18px 18px;cursor:pointer;
+    color:var(--text);font-size:18px;font-weight:700;text-align:left;
+    transition:.15s;
+  }
+  .service-btn:active{transform:scale(.98)}
+  .service-btn.selected{border-color:var(--brand);background:#0b3a54}
+  .dot{width:14px;height:14px;border-radius:50%;flex:0 0 auto}
+  .dot.mg{background:#f97316}
+  .dot.ria{background:#a855f7}
+  .dot.wu{background:#facc15}
+
+  input[type=text]{
+    width:100%;padding:16px;border-radius:14px;border:2px solid var(--line);
+    background:var(--card);color:var(--text);font-size:18px;
+  }
+  input[type=text]:focus{outline:none;border-color:var(--brand)}
+
+  .take{
+    width:100%;margin-top:20px;padding:20px;border:none;border-radius:16px;
+    background:var(--green);color:#062b12;font-size:20px;font-weight:800;cursor:pointer;
+  }
+  .take:disabled{opacity:.5}
+  .take:active{transform:scale(.99)}
+
+  .status-bar{
+    margin-top:26px;text-align:center;color:var(--muted);font-size:13px;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+  }
+  .live{width:9px;height:9px;border-radius:50%;background:var(--green);
+    box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:pulse 1.8s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}70%{box-shadow:0 0 0 10px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+  .live.off{background:#ef4444;animation:none}
+
+  /* Ticket-visning */
+  .ticket{display:none}
+  .ticket.show{display:block}
+  .form-view.hide{display:none}
+
+  .ticket-card{
+    background:var(--card);border:2px solid var(--line);border-radius:20px;
+    padding:26px 22px;text-align:center;
+  }
+  .ticket-service{color:var(--muted);font-size:15px;font-weight:600}
+  .ticket-nr{font-size:74px;font-weight:900;line-height:1;margin:8px 0;color:#fff}
+  .ticket-nr small{font-size:26px;color:var(--muted);vertical-align:middle;margin-right:6px}
+  .ticket-name{font-size:20px;font-weight:700;margin-bottom:18px}
+
+  .ahead{
+    background:#0b3a54;border-radius:14px;padding:16px;margin-top:8px;
+  }
+  .ahead .num{font-size:40px;font-weight:900;color:var(--brand)}
+  .ahead .lbl{color:var(--muted);font-size:13px}
+
+  .waiting-tag,.called-tag{
+    margin-top:18px;padding:14px;border-radius:14px;font-weight:700;font-size:16px;
+  }
+  .waiting-tag{background:#3b2f0b;color:var(--amber)}
+
+  .called-tag{
+    background:var(--green);color:#062b12;font-size:22px;
+    animation:flash 1s ease-in-out infinite;
+  }
+  .called-tag .big{font-size:28px;font-weight:900;display:block;margin-bottom:6px}
+  @keyframes flash{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+
+  .new-btn{
+    margin-top:20px;width:100%;padding:16px;border-radius:14px;border:2px solid var(--line);
+    background:transparent;color:var(--muted);font-size:15px;font-weight:600;cursor:pointer;
+  }
+  .err{color:#fca5a5;text-align:center;margin-top:12px;min-height:20px;font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">BAHAYA <span>SHOP</span></div>
+    <div class="sub">Digitaalka safka &middot; Digital kø</div>
+  </header>
+
+  <!-- FORM -->
+  <div class="form-view" id="formView">
+    <h2>Dooro adeegga <small>Vælg service</small></h2>
+    <div class="services" id="services">
+      <button class="service-btn" data-service="MoneyGram"><span class="dot mg"></span>MoneyGram</button>
+      <button class="service-btn" data-service="Ria"><span class="dot ria"></span>Ria</button>
+      <button class="service-btn" data-service="Western Union"><span class="dot wu"></span>Western Union</button>
+    </div>
+
+    <h2>Magacaaga <small>Dit navn</small></h2>
+    <input type="text" id="name" maxlength="40" placeholder="Magaca / Navn" autocomplete="off">
+
+    <button class="take" id="takeBtn">Qaado nambar / Tag et nummer</button>
+    <div class="err" id="err"></div>
+  </div>
+
+  <!-- TICKET -->
+  <div class="ticket" id="ticketView">
+    <div class="ticket-card">
+      <div class="ticket-service" id="tService">MoneyGram</div>
+      <div class="ticket-nr"><small>NR</small><span id="tNumber">1</span></div>
+      <div class="ticket-name" id="tName">Navn</div>
+
+      <div class="ahead" id="aheadBox">
+        <div class="num" id="tAhead">0</div>
+        <div class="lbl">Dad ku hor jira / Personer foran dig</div>
+      </div>
+
+      <div class="waiting-tag" id="waitingTag">
+        Sug fadlan... / Vent venligst...
+      </div>
+
+      <div class="called-tag" id="calledTag" style="display:none">
+        <span class="big">ADIGA AYAA LA YEERAY<br>DU BLIVER KALDT IND</span>
+        Fadlan soo gal / Venligst kom ind
+      </div>
+    </div>
+
+    <button class="new-btn" id="newBtn">Qaado nambar cusub / Tag nyt nummer</button>
+  </div>
+
+  <div class="status-bar">
+    <span class="live" id="live"></span>
+    <span id="statusText">Nidaamku wuu xiriiran yahay / System connected</span>
+  </div>
+</div>
+
+<script>
+  var selectedService = null;
+  var myTicketId = localStorage.getItem('bahaya_ticket_id');
+  var lastStatus = null;
+  var beeped = false;
+
+  var servicesEl = document.getElementById('services');
+  var nameEl = document.getElementById('name');
+  var takeBtn = document.getElementById('takeBtn');
+  var errEl = document.getElementById('err');
+
+  servicesEl.addEventListener('click', function(e){
+    var btn = e.target.closest('.service-btn');
+    if(!btn) return;
+    selectedService = btn.getAttribute('data-service');
+    document.querySelectorAll('.service-btn').forEach(function(b){b.classList.remove('selected')});
+    btn.classList.add('selected');
+    errEl.textContent = '';
+  });
+
+  takeBtn.addEventListener('click', function(){
+    errEl.textContent = '';
+    if(!selectedService){ errEl.textContent = 'Dooro adeeg / Vælg en service'; return; }
+    var name = nameEl.value.trim();
+    if(!name){ errEl.textContent = 'Qor magacaaga / Skriv dit navn'; return; }
+    takeBtn.disabled = true;
+    fetch('/api/take', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({service:selectedService, name:name})
+    }).then(function(r){return r.json();}).then(function(d){
+      takeBtn.disabled = false;
+      if(d.id){
+        myTicketId = d.id;
+        localStorage.setItem('bahaya_ticket_id', d.id);
+        beeped = false;
+        showTicket(d);
+      } else {
+        errEl.textContent = 'Fejl - prøv igen';
+      }
+    }).catch(function(){
+      takeBtn.disabled = false;
+      errEl.textContent = 'Ingen forbindelse - prøv igen';
+    });
+  });
+
+  document.getElementById('newBtn').addEventListener('click', function(){
+    localStorage.removeItem('bahaya_ticket_id');
+    myTicketId = null;
+    lastStatus = null;
+    document.getElementById('ticketView').classList.remove('show');
+    document.getElementById('formView').classList.remove('hide');
+    selectedService = null;
+    nameEl.value = '';
+    document.querySelectorAll('.service-btn').forEach(function(b){b.classList.remove('selected')});
+  });
+
+  function showTicket(d){
+    document.getElementById('formView').classList.add('hide');
+    document.getElementById('ticketView').classList.add('show');
+    document.getElementById('tService').textContent = d.service;
+    document.getElementById('tNumber').textContent = d.number;
+    document.getElementById('tName').textContent = d.name;
+    updateTicketStatus(d);
+  }
+
+  function updateTicketStatus(d){
+    document.getElementById('tAhead').textContent = d.ahead != null ? d.ahead : 0;
+    var waiting = document.getElementById('waitingTag');
+    var called = document.getElementById('calledTag');
+    var aheadBox = document.getElementById('aheadBox');
+    if(d.status === 'called'){
+      waiting.style.display = 'none';
+      aheadBox.style.display = 'none';
+      called.style.display = 'block';
+      if(!beeped){ beep(); vibrate(); beeped = true; }
+    } else {
+      waiting.style.display = 'block';
+      aheadBox.style.display = 'block';
+      called.style.display = 'none';
+      beeped = false;
+    }
+    lastStatus = d.status;
+  }
+
+  function poll(){
+    var live = document.getElementById('live');
+    if(myTicketId){
+      fetch('/api/ticket?id=' + encodeURIComponent(myTicketId))
+        .then(function(r){
+          if(r.status === 404){ // nummeret findes ikke længere (fx reset)
+            localStorage.removeItem('bahaya_ticket_id');
+            myTicketId = null;
+            document.getElementById('newBtn').click();
+            throw new Error('gone');
+          }
+          return r.json();
+        })
+        .then(function(d){
+          live.classList.remove('off');
+          if(document.getElementById('formView').classList.contains('hide')){
+            updateTicketStatus(d);
+          } else {
+            showTicket(d);
+          }
+        })
+        .catch(function(){ live.classList.add('off'); });
+    } else {
+      // Bare tjek forbindelsen
+      fetch('/api/state').then(function(){live.classList.remove('off');})
+        .catch(function(){live.classList.add('off');});
+    }
+  }
+
+  // Genskab nummer efter refresh
+  if(myTicketId){
+    fetch('/api/ticket?id=' + encodeURIComponent(myTicketId))
+      .then(function(r){ if(r.status===404){localStorage.removeItem('bahaya_ticket_id');myTicketId=null;return null;} return r.json();})
+      .then(function(d){ if(d && d.id) showTicket(d); });
+  }
+
+  setInterval(poll, 1500);
+
+  // Lyd + vibration når man kaldes ind
+  function beep(){
+    try{
+      var ctx = new (window.AudioContext||window.webkitAudioContext)();
+      var o = ctx.createOscillator(), g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type='sine'; o.frequency.value=880;
+      g.gain.setValueAtTime(0.001, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime+0.05);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.8);
+      o.start(); o.stop(ctx.currentTime+0.85);
+    }catch(e){}
+  }
+  function vibrate(){ if(navigator.vibrate) navigator.vibrate([200,100,200]); }
+</script>
+</body>
+</html>

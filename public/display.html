@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bahaya Shop - Display</title>
+<style>
+  :root{--bg:#0b1220;--brand:#0ea5e9;--green:#22c55e;--muted:#64748b}
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{background:radial-gradient(circle at 50% 30%,#132036,#0b1220 70%);
+    color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+  header{text-align:center;padding:3vh 0 1vh}
+  .logo{font-size:5vh;font-weight:900;letter-spacing:3px}
+  .logo span{color:var(--brand)}
+
+  .main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2vh}
+  .callbox{text-align:center;transition:transform .5s ease}
+  .callbox.pop{animation:pop 2s ease}
+  @keyframes pop{
+    0%{transform:scale(1)}
+    10%{transform:scale(1.35)}
+    35%{transform:scale(1.35)}
+    100%{transform:scale(1)}
+  }
+  .callbox.flash{animation:pop 2s ease, glow 2s ease}
+  @keyframes glow{0%,100%{filter:none}20%{filter:drop-shadow(0 0 40px rgba(34,197,94,.9))}}
+
+  .call-label{font-size:3.6vh;font-weight:700;color:var(--green);margin-bottom:1vh}
+  .call-label .da{color:#cbd5e1;font-weight:500;font-size:2.6vh}
+  .nr{font-size:24vh;font-weight:900;line-height:.9;color:#fff}
+  .nr small{font-size:7vh;color:var(--brand);vertical-align:top;margin-right:1vh}
+  .name{font-size:6vh;font-weight:800;margin-top:1vh}
+  .service{font-size:3.4vh;color:var(--muted);margin-top:1vh;font-weight:600}
+
+  .idle{text-align:center;color:var(--muted)}
+  .idle .big{font-size:7vh;font-weight:800;color:#cbd5e1}
+  .idle .small{font-size:3vh;margin-top:1vh}
+
+  footer{text-align:center;padding:2vh;color:var(--muted);font-size:2.2vh}
+  .clock{font-weight:700;color:#cbd5e1}
+</style>
+</head>
+<body>
+  <header>
+    <div class="logo">BAHAYA <span>SHOP</span></div>
+  </header>
+
+  <div class="main">
+    <div id="idle" class="idle">
+      <div class="big">Fadlan sug &middot; Vent venligst</div>
+      <div class="small">Numarkaaga ayaa halkan lagu tusi doonaa<br>Dit nummer vises her</div>
+    </div>
+
+    <div id="callbox" class="callbox" style="display:none">
+      <div class="call-label">Fadlan soo gal<div class="da">Venligst kom ind</div></div>
+      <div class="nr"><small>NR</small><span id="nr">0</span></div>
+      <div class="name" id="name"></div>
+      <div class="service" id="service"></div>
+    </div>
+  </div>
+
+  <footer>
+    <span class="clock" id="clock"></span> &middot; Bahaya Shop Digital Kø
+  </footer>
+
+<script>
+  var lastSeq = -1;
+  var callbox = document.getElementById('callbox');
+  var idle = document.getElementById('idle');
+
+  function show(c){
+    idle.style.display='none';
+    callbox.style.display='block';
+    document.getElementById('nr').textContent = c.number;
+    document.getElementById('name').textContent = c.name || '';
+    document.getElementById('service').textContent = c.service || '';
+  }
+
+  function animate(){
+    callbox.classList.remove('pop','flash');
+    void callbox.offsetWidth; // genstart animation
+    callbox.classList.add('flash');
+    chime();
+  }
+
+  function poll(){
+    fetch('/api/state').then(function(r){return r.json();}).then(function(d){
+      if(d.lastCalled){
+        show(d.lastCalled);
+        if(d.lastCalled.seq !== lastSeq){
+          if(lastSeq !== -1) animate();   // spring animation over ved allerførste indlæsning
+          lastSeq = d.lastCalled.seq;
+        }
+      } else {
+        idle.style.display='block';
+        callbox.style.display='none';
+        lastSeq = -1;
+      }
+    }).catch(function(){});
+  }
+
+  poll();
+  setInterval(poll, 1200);
+
+  // Ur
+  function tick(){
+    var n=new Date();
+    document.getElementById('clock').textContent =
+      String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+  }
+  tick(); setInterval(tick, 10000);
+
+  // Klokkelyd når nyt nummer kaldes (kræver at man klikker på skærmen én gang)
+  function chime(){
+    try{
+      var ctx = new (window.AudioContext||window.webkitAudioContext)();
+      [0,0.18,0.36].forEach(function(t,i){
+        var o=ctx.createOscillator(),g=ctx.createGain();
+        o.connect(g);g.connect(ctx.destination);
+        o.type='sine';o.frequency.value=[660,880,1046][i];
+        g.gain.setValueAtTime(0.001,ctx.currentTime+t);
+        g.gain.exponentialRampToValueAtTime(0.4,ctx.currentTime+t+0.03);
+        g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+t+0.5);
+        o.start(ctx.currentTime+t);o.stop(ctx.currentTime+t+0.55);
+      });
+    }catch(e){}
+  }
+  // Aktiver lyd ved første klik (browsere blokerer auto-lyd)
+  document.body.addEventListener('click', function(){ chime(); }, {once:true});
+</script>
+</body>
+</html>

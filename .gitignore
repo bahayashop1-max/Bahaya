@@ -1,0 +1,10 @@
+# Runtime kø-data (oprettes automatisk af serveren)
+state.json
+
+# Cloudflare tunnel-program (stor fil, hentes separat)
+cloudflared-windows-amd64.exe
+cloudflared*.exe
+
+# Node
+node_modules/
+npm-debug.log

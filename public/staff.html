@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bahaya Shop - Staff</title>
+<style>
+  :root{
+    --bg:#0f172a;--card:#1e293b;--line:#334155;--text:#f1f5f9;--muted:#94a3b8;
+    --green:#22c55e;--brand:#0ea5e9;--red:#ef4444;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    background:var(--bg);color:var(--text);padding:16px}
+  .wrap{max-width:900px;margin:0 auto}
+  header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+  .logo{font-size:24px;font-weight:800}
+  .logo span{color:var(--brand)}
+  .live{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}
+  .dotlive{width:9px;height:9px;border-radius:50%;background:var(--green)}
+  .dotlive.off{background:var(--red)}
+
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .filter{padding:10px 16px;border-radius:12px;border:2px solid var(--line);background:var(--card);
+    color:var(--text);font-weight:700;cursor:pointer;font-size:15px}
+  .filter.active{border-color:var(--brand);background:#0b3a54}
+  .filter .count{color:var(--muted);font-weight:600;margin-left:6px}
+
+  .list{display:grid;gap:10px}
+  .row{display:flex;align-items:center;gap:14px;background:var(--card);border:2px solid var(--line);
+    border-radius:14px;padding:14px 16px}
+  .row.called{border-color:var(--green);opacity:.75}
+  .nr{font-size:30px;font-weight:900;min-width:70px}
+  .nr small{font-size:14px;color:var(--muted);display:block;font-weight:600}
+  .info{flex:1;min-width:0}
+  .name{font-size:19px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .svc{color:var(--muted);font-size:14px;display:flex;align-items:center;gap:6px;margin-top:2px}
+  .sdot{width:10px;height:10px;border-radius:50%}
+  .sdot.MoneyGram{background:#f97316}.sdot.Ria{background:#a855f7}.sdot.Western{background:#facc15}
+  .actions{display:flex;gap:8px}
+  .call{padding:12px 18px;border:none;border-radius:12px;background:var(--green);color:#062b12;
+    font-weight:800;font-size:16px;cursor:pointer;white-space:nowrap}
+  .call:active{transform:scale(.97)}
+  .done{padding:12px 14px;border:2px solid var(--line);border-radius:12px;background:transparent;
+    color:var(--muted);font-weight:700;cursor:pointer}
+  .called-badge{color:var(--green);font-weight:700;font-size:14px;padding:0 8px}
+
+  .empty{text-align:center;color:var(--muted);padding:50px 10px;font-size:16px}
+  .reset{margin-top:22px;text-align:center}
+  .reset button{padding:12px 22px;border:2px solid var(--red);border-radius:12px;background:transparent;
+    color:var(--red);font-weight:700;cursor:pointer;font-size:15px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">BAHAYA <span>SHOP</span> &middot; Staff</div>
+    <div class="live"><span class="dotlive" id="live"></span><span id="liveText">Forbundet</span></div>
+  </header>
+
+  <div class="filters" id="filters">
+    <button class="filter active" data-f="all">Alle <span class="count" id="c-all">0</span></button>
+    <button class="filter" data-f="MoneyGram">MoneyGram <span class="count" id="c-MoneyGram">0</span></button>
+    <button class="filter" data-f="Ria">Ria <span class="count" id="c-Ria">0</span></button>
+    <button class="filter" data-f="Western Union">Western Union <span class="count" id="c-Western Union">0</span></button>
+  </div>
+
+  <div class="list" id="list"></div>
+  <div class="empty" id="empty" style="display:none">Ingen i kø / Saf ma jiro</div>
+
+  <div class="reset">
+    <button id="resetBtn">Reset Numbers / Nulstil køen</button>
+  </div>
+</div>
+
+<script>
+  var filter = 'all';
+  var lastData = null;
+
+  document.getElementById('filters').addEventListener('click', function(e){
+    var b = e.target.closest('.filter');
+    if(!b) return;
+    filter = b.getAttribute('data-f');
+    document.querySelectorAll('.filter').forEach(function(x){x.classList.remove('active')});
+    b.classList.add('active');
+    render();
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', function(){
+    if(!confirm('Nulstil hele køen? Alle numre slettes.')) return;
+    fetch('/api/reset',{method:'POST'}).then(load);
+  });
+
+  function callIn(id){
+    fetch('/api/call',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({id:id})}).then(load);
+  }
+  function markDone(id){
+    fetch('/api/done',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({id:id})}).then(load);
+  }
+
+  function sdotClass(svc){
+    if(svc==='Western Union') return 'Western';
+    return svc;
+  }
+
+  function render(){
+    if(!lastData) return;
+    var tickets = lastData.tickets.filter(function(t){return t.status!=='done';});
+    // tæl pr. service (kun ventende)
+    var counts={all:0,'MoneyGram':0,'Ria':0,'Western Union':0};
+    tickets.forEach(function(t){ if(t.status==='waiting'){counts.all++;counts[t.service]++;} });
+    document.getElementById('c-all').textContent=counts.all;
+    document.getElementById('c-MoneyGram').textContent=counts['MoneyGram'];
+    document.getElementById('c-Ria').textContent=counts['Ria'];
+    document.getElementById('c-Western Union').textContent=counts['Western Union'];
+
+    var shown = tickets.filter(function(t){return filter==='all'||t.service===filter;});
+    shown.sort(function(a,b){return a.number-b.number;});
+
+    var list=document.getElementById('list');
+    var empty=document.getElementById('empty');
+    if(shown.length===0){ list.innerHTML=''; empty.style.display='block'; return; }
+    empty.style.display='none';
+
+    list.innerHTML = shown.map(function(t){
+      var called = t.status==='called';
+      return '<div class="row'+(called?' called':'')+'">'+
+        '<div class="nr"><small>NR</small>'+t.number+'</div>'+
+        '<div class="info"><div class="name">'+esc(t.name)+'</div>'+
+          '<div class="svc"><span class="sdot '+sdotClass(t.service)+'"></span>'+esc(t.service)+'</div></div>'+
+        '<div class="actions">'+
+          (called
+            ? '<span class="called-badge">Kaldt ind &check;</span><button class="done" onclick="markDone(\''+t.id+'\')">Færdig</button>'
+            : '<button class="call" onclick="callIn(\''+t.id+'\')">U yeer / Kald ind</button>')+
+        '</div>'+
+      '</div>';
+    }).join('');
+  }
+
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+  function load(){
+    return fetch('/api/state').then(function(r){return r.json();}).then(function(d){
+      document.getElementById('live').classList.remove('off');
+      document.getElementById('liveText').textContent='Forbundet';
+      lastData=d; render();
+    }).catch(function(){
+      document.getElementById('live').classList.add('off');
+      document.getElementById('liveText').textContent='Ingen forbindelse';
+    });
+  }
+
+  load();
+  setInterval(load, 1500);
+</script>
+</body>
+</html>
