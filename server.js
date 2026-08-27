@@ -95,11 +95,10 @@ function publicState() {
   };
 }
 
-// Antal personer foran (samme service, ventende, lavere nummer)
+// Antal personer foran i hele køen (ventende, lavere nummer)
 function peopleAhead(ticket) {
   return state.tickets.filter(t =>
     t.status === 'waiting' &&
-    t.service === ticket.service &&
     t.number < ticket.number
   ).length;
 }

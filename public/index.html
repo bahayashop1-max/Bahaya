@@ -6,10 +6,10 @@
 <title>Bahaya Shop - Kø / Saf</title>
 <style>
   :root{
-    --bg:#0f172a; --card:#1e293b; --line:#334155;
-    --text:#f1f5f9; --muted:#94a3b8;
-    --green:#22c55e; --blue:#3b82f6; --amber:#f59e0b;
-    --brand:#0ea5e9;
+    --bg:#ffffff; --card:#f8fafc; --line:#e2e8f0;
+    --text:#0f172a; --muted:#64748b;
+    --green:#16a34a; --blue:#3b82f6; --amber:#f59e0b;
+    --brand:#0284c7; --tint:#e0f2fe;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   body{
@@ -19,7 +19,7 @@
   }
   .wrap{max-width:480px;margin:0 auto}
   header{text-align:center;margin-bottom:22px}
-  .logo{font-size:30px;font-weight:800;letter-spacing:1px;color:#fff}
+  .logo{font-size:30px;font-weight:800;letter-spacing:1px;color:var(--text)}
   .logo span{color:var(--brand)}
   .sub{color:var(--muted);margin-top:6px;font-size:15px}
   h2{font-size:17px;margin:24px 0 12px;font-weight:700}
@@ -34,7 +34,7 @@
     transition:.15s;
   }
   .service-btn:active{transform:scale(.98)}
-  .service-btn.selected{border-color:var(--brand);background:#0b3a54}
+  .service-btn.selected{border-color:var(--brand);background:var(--tint)}
   .dot{width:14px;height:14px;border-radius:50%;flex:0 0 auto}
   .dot.mg{background:#f97316}
   .dot.ria{background:#a855f7}
@@ -48,7 +48,7 @@
 
   .take{
     width:100%;margin-top:20px;padding:20px;border:none;border-radius:16px;
-    background:var(--green);color:#062b12;font-size:20px;font-weight:800;cursor:pointer;
+    background:var(--green);color:#fff;font-size:20px;font-weight:800;cursor:pointer;
   }
   .take:disabled{opacity:.5}
   .take:active{transform:scale(.99)}
@@ -72,12 +72,12 @@
     padding:26px 22px;text-align:center;
   }
   .ticket-service{color:var(--muted);font-size:15px;font-weight:600}
-  .ticket-nr{font-size:74px;font-weight:900;line-height:1;margin:8px 0;color:#fff}
+  .ticket-nr{font-size:74px;font-weight:900;line-height:1;margin:8px 0;color:var(--text)}
   .ticket-nr small{font-size:26px;color:var(--muted);vertical-align:middle;margin-right:6px}
   .ticket-name{font-size:20px;font-weight:700;margin-bottom:18px}
 
   .ahead{
-    background:#0b3a54;border-radius:14px;padding:16px;margin-top:8px;
+    background:var(--tint);border-radius:14px;padding:16px;margin-top:8px;
   }
   .ahead .num{font-size:40px;font-weight:900;color:var(--brand)}
   .ahead .lbl{color:var(--muted);font-size:13px}
@@ -85,10 +85,10 @@
   .waiting-tag,.called-tag{
     margin-top:18px;padding:14px;border-radius:14px;font-weight:700;font-size:16px;
   }
-  .waiting-tag{background:#3b2f0b;color:var(--amber)}
+  .waiting-tag{background:#fef3c7;color:#b45309}
 
   .called-tag{
-    background:var(--green);color:#062b12;font-size:22px;
+    background:var(--green);color:#fff;font-size:22px;
     animation:flash 1s ease-in-out infinite;
   }
   .called-tag .big{font-size:28px;font-weight:900;display:block;margin-bottom:6px}
@@ -98,7 +98,7 @@
     margin-top:20px;width:100%;padding:16px;border-radius:14px;border:2px solid var(--line);
     background:transparent;color:var(--muted);font-size:15px;font-weight:600;cursor:pointer;
   }
-  .err{color:#fca5a5;text-align:center;margin-top:12px;min-height:20px;font-size:14px}
+  .err{color:#dc2626;text-align:center;margin-top:12px;min-height:20px;font-size:14px}
 </style>
 </head>
 <body>
