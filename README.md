@@ -46,39 +46,41 @@ Færdig. Systemet kører nu.
 
 ---
 
-## Offentligt link (kunder på 4G/5G/eget internet)
+## Offentligt link – Railway (anbefalet)
 
-For at kunder kan bruge deres **egen telefon og eget internet** (ikke butikkens Wi-Fi),
-bruger vi **Cloudflare Tunnel** (`cloudflared`). Det gør `http://localhost:8080`
-tilgængeligt som et `https://...` link.
+I stedet for laptop + Cloudflare kører systemet på **Railway**. Railway giver dig
+automatisk et **fast, offentligt `https://...`-link**, der ikke skifter, og som
+kunder kan åbne på deres egen telefon (4G/5G/eget Wi-Fi). Ingen laptop skal stå tændt.
 
-### Hurtig løsning (gratis, men linket skifter)
-1. Hent **`cloudflared-windows-amd64.exe`** fra Cloudflare:
-   https://github.com/cloudflare/cloudflared/releases/latest
-   (find filen der hedder `cloudflared-windows-amd64.exe`).
-2. Læg filen i **samme mappe** som `START_BAHAYA.bat`.
-3. Kør `START_BAHAYA.bat`. Der åbner et vindue **"BAHAYA TUNNEL"**.
-4. I det vindue står et link som:
-   `https://noget-tilfaeldigt.trycloudflare.com`
-5. Det link er kundens link. Del det (fx som QR-kode).
+Adresser når det kører på Railway (samme link, forskellige sider):
 
-> Med denne gratis metode skifter linket hver gang du genstarter.
+- Kunde:   `https://DIT-PROJEKT.up.railway.app`
+- Staff:   `https://DIT-PROJEKT.up.railway.app/staff.html`
+- Display: `https://DIT-PROJEKT.up.railway.app/display.html`
 
-### Stabil løsning (fast link, fx `ko.bahayashop.dk`)
-Hvis du vil have et **fast link der ikke skifter**, skal du:
-1. Have et domæne (fx `bahayashop.dk`) tilføjet i en gratis **Cloudflare-konto**.
-2. Oprette en **named tunnel**:
-   ```
-   cloudflared login
-   cloudflared tunnel create bahaya
-   cloudflared tunnel route dns bahaya ko.bahayashop.dk
-   ```
-3. Så kører du fremover tunnelen med det faste navn i stedet for `--url`.
+### Kom på Railway
+1. Push denne kode til GitHub (branchen er allerede pushet).
+2. Gå til **railway.app** → **New Project** → **Deploy from GitHub repo** → vælg `bahaya-shop`.
+3. Railway ser selv `package.json` og starter med `npm start`. Ingen ekstra opsætning.
+4. Under **Settings → Networking → Generate Domain** får du dit faste link.
 
-Sig til, så laver jeg en færdig opskrift (og en `config.yml`) til netop dit domæne.
+### Så køen ikke nulstilles ved genstart (valgfrit men anbefalet)
+Railways disk nulstilles ved hver ny deploy. For at gemme køen permanent:
+1. I Railway: **New → Volume**, mount path fx `/data`.
+2. Under **Variables** tilføj: `DATA_DIR = /data`
+Så gemmes `state.json` på volumet og overlever genstart og deploy.
 
-> **OBS:** Cloudflare **WARP** er IKKE det samme som **cloudflared**.
-> Til tunnelen bruger vi **cloudflared** (`cloudflared-windows-amd64.exe`).
+### Eget domæne (fx `ko.bahayashop.dk`)
+Har du et domæne (fx via GitHub Student Pack / Namecheap), kan du i Railway under
+**Settings → Networking → Custom Domain** skrive `ko.bahayashop.dk` og oprette den
+CNAME-record Railway viser hos din domæne-udbyder.
+
+---
+
+## Lokal kørsel (kun til test på egen PC)
+
+`START_BAHAYA.bat` kan stadig bruges til at teste lokalt uden internet.
+Til rigtige kunder bruger du Railway-linket ovenfor.
 
 ---
 

@@ -1,0 +1,13 @@
+{
+  "name": "bahaya-shop-queue",
+  "version": "1.0.0",
+  "description": "Digitalt kosystem til Bahaya Shop (MoneyGram, Ria, Western Union)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

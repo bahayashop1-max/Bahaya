@@ -20,6 +20,14 @@
   .dotlive{width:9px;height:9px;border-radius:50%;background:var(--green)}
   .dotlive.off{background:var(--red)}
 
+  .callnext{width:100%;padding:18px;border:none;border-radius:16px;background:var(--green);
+    color:#062b12;font-size:20px;font-weight:800;cursor:pointer;margin-bottom:14px;
+    display:flex;align-items:center;justify-content:center;gap:12px}
+  .callnext:active{transform:scale(.99)}
+  .callnext:disabled{opacity:.45;cursor:default}
+  .callnext .key{font-size:12px;font-weight:700;background:rgba(0,0,0,.25);color:#062b12;
+    padding:4px 10px;border-radius:8px;letter-spacing:1px}
+
   .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
   .filter{padding:10px 16px;border-radius:12px;border:2px solid var(--line);background:var(--card);
     color:var(--text);font-weight:700;cursor:pointer;font-size:15px}
@@ -57,6 +65,11 @@
     <div class="logo">BAHAYA <span>SHOP</span> &middot; Staff</div>
     <div class="live"><span class="dotlive" id="live"></span><span id="liveText">Forbundet</span></div>
   </header>
+
+  <button class="callnext" id="callNextBtn">
+    U yeer kan xiga / Kald næste ind
+    <span class="key">MELLEMRUM</span>
+  </button>
 
   <div class="filters" id="filters">
     <button class="filter active" data-f="all">Alle <span class="count" id="c-all">0</span></button>
@@ -100,6 +113,56 @@
       body:JSON.stringify({id:id})}).then(load);
   }
 
+  // Kald den naeste ventende kunde i det valgte filter
+  function callNext(){
+    if(!lastData) return;
+    var waiting = lastData.tickets.filter(function(t){
+      return t.status==='waiting' && (filter==='all' || t.service===filter);
+    });
+    if(waiting.length===0){ buzz(); return; }
+    waiting.sort(function(a,b){return a.number-b.number;});
+    ding();
+    callIn(waiting[0].id);
+  }
+
+  document.getElementById('callNextBtn').addEventListener('click', callNext);
+
+  // MELLEMRUM (space) kalder naeste ind
+  document.addEventListener('keydown', function(e){
+    if(e.code === 'Space' || e.key === ' '){
+      var tag = (e.target.tagName||'').toLowerCase();
+      if(tag==='input' || tag==='textarea') return;   // bland dig ikke i skrivefelter
+      e.preventDefault();
+      callNext();
+    }
+  });
+
+  // Lyd naar man kalder ind
+  function ding(){
+    try{
+      var ctx = new (window.AudioContext||window.webkitAudioContext)();
+      [880,1174].forEach(function(f,i){
+        var o=ctx.createOscillator(),g=ctx.createGain();
+        o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=f;
+        var t=ctx.currentTime+i*0.12;
+        g.gain.setValueAtTime(0.001,t);
+        g.gain.exponentialRampToValueAtTime(0.35,t+0.03);
+        g.gain.exponentialRampToValueAtTime(0.001,t+0.35);
+        o.start(t);o.stop(t+0.4);
+      });
+    }catch(e){}
+  }
+  function buzz(){ // kort lyd naar koeen er tom
+    try{
+      var ctx=new (window.AudioContext||window.webkitAudioContext)();
+      var o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);o.type='square';o.frequency.value=180;
+      g.gain.setValueAtTime(0.2,ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.25);
+      o.start();o.stop(ctx.currentTime+0.3);
+    }catch(e){}
+  }
+
   function sdotClass(svc){
     if(svc==='Western Union') return 'Western';
     return svc;
@@ -118,6 +181,9 @@
 
     var shown = tickets.filter(function(t){return filter==='all'||t.service===filter;});
     shown.sort(function(a,b){return a.number-b.number;});
+
+    var waitingInFilter = shown.filter(function(t){return t.status==='waiting';}).length;
+    document.getElementById('callNextBtn').disabled = waitingInFilter===0;
 
     var list=document.getElementById('list');
     var empty=document.getElementById('empty');

@@ -18,7 +18,9 @@ const path = require('path');
 
 const PORT = process.env.PORT || 8080;
 const PUBLIC_DIR = path.join(__dirname, 'public');
-const STATE_FILE = path.join(__dirname, 'state.json');
+// DATA_DIR kan pege paa et Railway-volume, saa koeen overlever genstart/deploy.
+const DATA_DIR = process.env.DATA_DIR || __dirname;
+const STATE_FILE = path.join(DATA_DIR, 'state.json');
 
 const SERVICES = ['MoneyGram', 'Ria', 'Western Union'];
 
