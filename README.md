@@ -96,6 +96,19 @@ Til rigtige kunder bruger du Railway-linket ovenfor.
 
 ---
 
+## Åbningstider og booking
+
+Systemet har åbningstider (standard **10:00–16:00**, dansk tid):
+
+- **Inden for åbningstid:** kunden tager et live-nummer som normalt.
+- **Uden for åbningstid (lukket):** kunden kan ikke tage nummer, men kan **booke en tid**
+  til næste åbningsdag (tider hvert 15. minut). Personalet ser bookingerne nederst
+  på staff-siden under **"Ballamaha / Bookede tider"**.
+
+Vil du ændre åbningstiderne? I Railway → **Variables**:
+- `OPEN_HOUR` = fx `10`
+- `CLOSE_HOUR` = fx `16`
+
 ## Data og sikkerhed
 
 - Hele køen gemmes i **`state.json`**. Derfor:

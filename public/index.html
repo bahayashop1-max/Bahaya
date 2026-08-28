@@ -31,7 +31,7 @@
     background:var(--card);border:2px solid var(--line);
     border-radius:16px;padding:18px 18px;cursor:pointer;
     color:var(--text);font-size:18px;font-weight:700;text-align:left;
-    transition:.15s;
+    transition:.15s;width:100%;
   }
   .service-btn:active{transform:scale(.98)}
   .service-btn.selected{border-color:var(--brand);background:var(--tint)}
@@ -58,14 +58,13 @@
     display:flex;align-items:center;justify-content:center;gap:8px;
   }
   .live{width:9px;height:9px;border-radius:50%;background:var(--green);
-    box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:pulse 1.8s infinite}
-  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}70%{box-shadow:0 0 0 10px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+    box-shadow:0 0 0 0 rgba(22,163,74,.6);animation:pulse 1.8s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(22,163,74,.6)}70%{box-shadow:0 0 0 10px rgba(22,163,74,0)}100%{box-shadow:0 0 0 0 rgba(22,163,74,0)}}
   .live.off{background:#ef4444;animation:none}
 
-  /* Ticket-visning */
-  .ticket{display:none}
-  .ticket.show{display:block}
-  .form-view.hide{display:none}
+  /* skjul/vis */
+  .view{display:none}
+  .view.show{display:block}
 
   .ticket-card{
     background:var(--card);border:2px solid var(--line);border-radius:20px;
@@ -76,21 +75,13 @@
   .ticket-nr small{font-size:26px;color:var(--muted);vertical-align:middle;margin-right:6px}
   .ticket-name{font-size:20px;font-weight:700;margin-bottom:18px}
 
-  .ahead{
-    background:var(--tint);border-radius:14px;padding:16px;margin-top:8px;
-  }
+  .ahead{background:var(--tint);border-radius:14px;padding:16px;margin-top:8px}
   .ahead .num{font-size:40px;font-weight:900;color:var(--brand)}
   .ahead .lbl{color:var(--muted);font-size:13px}
 
-  .waiting-tag,.called-tag{
-    margin-top:18px;padding:14px;border-radius:14px;font-weight:700;font-size:16px;
-  }
+  .waiting-tag,.called-tag{margin-top:18px;padding:14px;border-radius:14px;font-weight:700;font-size:16px}
   .waiting-tag{background:#fef3c7;color:#b45309}
-
-  .called-tag{
-    background:var(--green);color:#fff;font-size:22px;
-    animation:flash 1s ease-in-out infinite;
-  }
+  .called-tag{background:var(--green);color:#fff;font-size:22px;animation:flash 1s ease-in-out infinite}
   .called-tag .big{font-size:28px;font-weight:900;display:block;margin-bottom:6px}
   @keyframes flash{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
 
@@ -99,6 +90,25 @@
     background:transparent;color:var(--muted);font-size:15px;font-weight:600;cursor:pointer;
   }
   .err{color:#dc2626;text-align:center;margin-top:12px;min-height:20px;font-size:14px}
+
+  /* Lukket / booking */
+  .closed-banner{
+    background:#fef2f2;border:2px solid #fecaca;border-radius:16px;padding:18px;text-align:center;margin-bottom:6px;
+  }
+  .closed-banner b{color:#b91c1c;font-size:20px;display:block;margin-bottom:4px}
+  .closed-banner .hours{color:#7f1d1d;font-size:14px}
+  .datechip{display:inline-block;background:var(--tint);color:var(--brand);font-weight:700;
+    font-size:13px;padding:3px 10px;border-radius:20px;margin-left:6px}
+
+  .slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:10px}
+  .slot{
+    padding:14px 6px;border-radius:12px;border:2px solid var(--line);background:var(--card);
+    color:var(--text);font-size:17px;font-weight:700;cursor:pointer;text-align:center;
+  }
+  .slot.sel{border-color:var(--brand);background:var(--tint);color:var(--brand)}
+  .slot.taken{opacity:.35;text-decoration:line-through;cursor:not-allowed}
+
+  .booking-date{font-size:15px;color:var(--muted);font-weight:600;margin-top:4px}
 </style>
 </head>
 <body>
@@ -108,45 +118,80 @@
     <div class="sub">Digitaalka safka &middot; Digital kø</div>
   </header>
 
-  <!-- FORM -->
-  <div class="form-view" id="formView">
+  <!-- 1) TAG NUMMER (åbent) -->
+  <div class="view" id="formView">
     <h2>Dooro adeegga <small>Vælg service</small></h2>
     <div class="services" id="services">
       <button class="service-btn" data-service="MoneyGram"><span class="dot mg"></span>MoneyGram</button>
       <button class="service-btn" data-service="Ria"><span class="dot ria"></span>Ria</button>
       <button class="service-btn" data-service="Western Union"><span class="dot wu"></span>Western Union</button>
     </div>
-
     <h2>Magacaaga <small>Dit navn</small></h2>
     <input type="text" id="name" maxlength="40" placeholder="Magaca / Navn" autocomplete="off">
-
     <button class="take" id="takeBtn">Qaado nambar / Tag et nummer</button>
     <div class="err" id="err"></div>
   </div>
 
-  <!-- TICKET -->
-  <div class="ticket" id="ticketView">
+  <!-- 2) TICKET -->
+  <div class="view" id="ticketView">
     <div class="ticket-card">
       <div class="ticket-service" id="tService">MoneyGram</div>
       <div class="ticket-nr"><small>NR</small><span id="tNumber">1</span></div>
       <div class="ticket-name" id="tName">Navn</div>
-
       <div class="ahead" id="aheadBox">
         <div class="num" id="tAhead">0</div>
         <div class="lbl">Dad ku hor jira / Personer foran dig</div>
       </div>
-
-      <div class="waiting-tag" id="waitingTag">
-        Sug fadlan... / Vent venligst...
-      </div>
-
+      <div class="waiting-tag" id="waitingTag">Sug fadlan... / Vent venligst...</div>
       <div class="called-tag" id="calledTag" style="display:none">
         <span class="big">ADIGA AYAA LA YEERAY<br>DU BLIVER KALDT IND</span>
         Fadlan soo gal / Venligst kom ind
       </div>
     </div>
-
     <button class="new-btn" id="newBtn">Qaado nambar cusub / Tag nyt nummer</button>
+  </div>
+
+  <!-- 3) BOOKING (lukket) -->
+  <div class="view" id="bookingView">
+    <div class="closed-banner">
+      <b>Xiran hadda / Lukket nu</b>
+      <div class="hours">Furan: <span id="hoursText">10:00–16:00</span> &middot; Åbningstid</div>
+    </div>
+    <p style="text-align:center;color:var(--muted);font-size:14px;margin:14px 0 0">
+      Ballan qabso wakhtiga xiga / Book en tid til næste åbning
+    </p>
+
+    <h2>Dooro adeegga <small>Vælg service</small></h2>
+    <div class="services" id="bServices">
+      <button class="service-btn" data-service="MoneyGram"><span class="dot mg"></span>MoneyGram</button>
+      <button class="service-btn" data-service="Ria"><span class="dot ria"></span>Ria</button>
+      <button class="service-btn" data-service="Western Union"><span class="dot wu"></span>Western Union</button>
+    </div>
+
+    <h2>Magacaaga <small>Dit navn</small></h2>
+    <input type="text" id="bName" maxlength="40" placeholder="Magaca / Navn" autocomplete="off">
+
+    <h2>Dooro waqti <small>Vælg tid</small> <span class="datechip" id="bDateLabel"></span></h2>
+    <div class="slots" id="slots"></div>
+
+    <button class="take" id="bookBtn">Ballan qabso / Book tid</button>
+    <div class="err" id="bErr"></div>
+  </div>
+
+  <!-- 4) BOOKING BEKRÆFTET -->
+  <div class="view" id="bookingConfirmView">
+    <div class="ticket-card">
+      <div class="ticket-service" id="cbService"></div>
+      <div class="ticket-nr" style="font-size:60px" id="cbTime">10:15</div>
+      <div class="booking-date" id="cbDate"></div>
+      <div class="ticket-name" id="cbName" style="margin-top:10px"></div>
+      <div class="ahead" style="background:#dcfce7">
+        <div style="color:var(--green);font-weight:800;font-size:16px">
+          Ballantaada waa la xaqiijiyay<br>Din tid er booket &check;
+        </div>
+      </div>
+    </div>
+    <button class="new-btn" id="cancelBookBtn">Beddel waqti / Book ny tid</button>
   </div>
 
   <div class="status-bar">
@@ -156,139 +201,198 @@
 </div>
 
 <script>
-  var selectedService = null;
   var myTicketId = localStorage.getItem('bahaya_ticket_id');
-  var lastStatus = null;
+  var myBookingId = localStorage.getItem('bahaya_booking_id');
+  var selectedService = null;     // til tag-nummer
+  var bSelectedService = null;    // til booking
+  var bSelectedSlot = null;
   var beeped = false;
+  var lastState = null;
 
-  var servicesEl = document.getElementById('services');
-  var nameEl = document.getElementById('name');
-  var takeBtn = document.getElementById('takeBtn');
-  var errEl = document.getElementById('err');
-
-  servicesEl.addEventListener('click', function(e){
-    var btn = e.target.closest('.service-btn');
-    if(!btn) return;
-    selectedService = btn.getAttribute('data-service');
-    document.querySelectorAll('.service-btn').forEach(function(b){b.classList.remove('selected')});
-    btn.classList.add('selected');
-    errEl.textContent = '';
-  });
-
-  takeBtn.addEventListener('click', function(){
-    errEl.textContent = '';
-    if(!selectedService){ errEl.textContent = 'Dooro adeeg / Vælg en service'; return; }
-    var name = nameEl.value.trim();
-    if(!name){ errEl.textContent = 'Qor magacaaga / Skriv dit navn'; return; }
-    takeBtn.disabled = true;
-    fetch('/api/take', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({service:selectedService, name:name})
-    }).then(function(r){return r.json();}).then(function(d){
-      takeBtn.disabled = false;
-      if(d.id){
-        myTicketId = d.id;
-        localStorage.setItem('bahaya_ticket_id', d.id);
-        beeped = false;
-        showTicket(d);
-      } else {
-        errEl.textContent = 'Fejl - prøv igen';
-      }
-    }).catch(function(){
-      takeBtn.disabled = false;
-      errEl.textContent = 'Ingen forbindelse - prøv igen';
+  function $(id){return document.getElementById(id);}
+  function showView(id){
+    ['formView','ticketView','bookingView','bookingConfirmView'].forEach(function(v){
+      $(v).classList.toggle('show', v===id);
     });
+  }
+
+  // ---- Service-valg (begge steder) ----
+  $('services').addEventListener('click', function(e){
+    var b=e.target.closest('.service-btn'); if(!b) return;
+    selectedService=b.getAttribute('data-service');
+    $('services').querySelectorAll('.service-btn').forEach(function(x){x.classList.remove('selected')});
+    b.classList.add('selected'); $('err').textContent='';
+  });
+  $('bServices').addEventListener('click', function(e){
+    var b=e.target.closest('.service-btn'); if(!b) return;
+    bSelectedService=b.getAttribute('data-service');
+    $('bServices').querySelectorAll('.service-btn').forEach(function(x){x.classList.remove('selected')});
+    b.classList.add('selected'); $('bErr').textContent='';
   });
 
-  document.getElementById('newBtn').addEventListener('click', function(){
-    localStorage.removeItem('bahaya_ticket_id');
-    myTicketId = null;
-    lastStatus = null;
-    document.getElementById('ticketView').classList.remove('show');
-    document.getElementById('formView').classList.remove('hide');
-    selectedService = null;
-    nameEl.value = '';
-    document.querySelectorAll('.service-btn').forEach(function(b){b.classList.remove('selected')});
+  // ---- Tag nummer ----
+  $('takeBtn').addEventListener('click', function(){
+    $('err').textContent='';
+    if(!selectedService){ $('err').textContent='Dooro adeeg / Vælg en service'; return; }
+    var name=$('name').value.trim();
+    if(!name){ $('err').textContent='Qor magacaaga / Skriv dit navn'; return; }
+    $('takeBtn').disabled=true;
+    fetch('/api/take',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({service:selectedService,name:name})})
+      .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
+      .then(function(res){
+        $('takeBtn').disabled=false;
+        if(res.ok && res.d.id){
+          myTicketId=res.d.id; localStorage.setItem('bahaya_ticket_id',res.d.id);
+          beeped=false; showTicket(res.d);
+        } else if(res.d.error==='closed'){
+          $('err').textContent=''; decideView(); // butikken lukkede lige
+        } else { $('err').textContent='Fejl - prøv igen'; }
+      })
+      .catch(function(){ $('takeBtn').disabled=false; $('err').textContent='Ingen forbindelse'; });
+  });
+
+  $('newBtn').addEventListener('click', function(){
+    localStorage.removeItem('bahaya_ticket_id'); myTicketId=null;
+    selectedService=null; $('name').value='';
+    $('services').querySelectorAll('.service-btn').forEach(function(x){x.classList.remove('selected')});
+    decideView();
   });
 
   function showTicket(d){
-    document.getElementById('formView').classList.add('hide');
-    document.getElementById('ticketView').classList.add('show');
-    document.getElementById('tService').textContent = d.service;
-    document.getElementById('tNumber').textContent = d.number;
-    document.getElementById('tName').textContent = d.name;
+    showView('ticketView');
+    $('tService').textContent=d.service; $('tNumber').textContent=d.number; $('tName').textContent=d.name;
     updateTicketStatus(d);
   }
-
   function updateTicketStatus(d){
-    document.getElementById('tAhead').textContent = d.ahead != null ? d.ahead : 0;
-    var waiting = document.getElementById('waitingTag');
-    var called = document.getElementById('calledTag');
-    var aheadBox = document.getElementById('aheadBox');
-    if(d.status === 'called'){
-      waiting.style.display = 'none';
-      aheadBox.style.display = 'none';
-      called.style.display = 'block';
-      if(!beeped){ beep(); vibrate(); beeped = true; }
-    } else {
-      waiting.style.display = 'block';
-      aheadBox.style.display = 'block';
-      called.style.display = 'none';
-      beeped = false;
-    }
-    lastStatus = d.status;
+    $('tAhead').textContent = d.ahead!=null ? d.ahead : 0;
+    var called = d.status==='called';
+    $('waitingTag').style.display = called?'none':'block';
+    $('aheadBox').style.display = called?'none':'block';
+    $('calledTag').style.display = called?'block':'none';
+    if(called && !beeped){ beep(); vibrate(); beeped=true; }
+    if(!called) beeped=false;
+  }
+
+  // ---- Booking ----
+  function renderSlots(state){
+    $('bDateLabel').textContent = labelText(state.bookingLabel);
+    var box=$('slots');
+    box.innerHTML = (state.slots||[]).map(function(s){
+      var cls='slot'+(s.taken?' taken':'')+(s.time===bSelectedSlot?' sel':'');
+      return '<div class="'+cls+'" data-time="'+s.time+'"'+(s.taken?'':' role="button"')+'>'+s.time+'</div>';
+    }).join('');
+  }
+  function labelText(lbl){
+    if(!lbl) return '';
+    return (lbl.prefix?lbl.prefix.split(' / ')[1]||lbl.prefix:'') + ' ' + lbl.weekday + ' ' + lbl.dayMonth;
+  }
+  $('slots').addEventListener('click', function(e){
+    var s=e.target.closest('.slot'); if(!s || s.classList.contains('taken')) return;
+    bSelectedSlot=s.getAttribute('data-time');
+    $('slots').querySelectorAll('.slot').forEach(function(x){x.classList.remove('sel')});
+    s.classList.add('sel'); $('bErr').textContent='';
+  });
+
+  $('bookBtn').addEventListener('click', function(){
+    $('bErr').textContent='';
+    if(!bSelectedService){ $('bErr').textContent='Dooro adeeg / Vælg en service'; return; }
+    var name=$('bName').value.trim();
+    if(!name){ $('bErr').textContent='Qor magacaaga / Skriv dit navn'; return; }
+    if(!bSelectedSlot){ $('bErr').textContent='Dooro waqti / Vælg en tid'; return; }
+    $('bookBtn').disabled=true;
+    fetch('/api/book',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({service:bSelectedService,name:name,time:bSelectedSlot})})
+      .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
+      .then(function(res){
+        $('bookBtn').disabled=false;
+        if(res.ok && res.d.booking){
+          myBookingId=res.d.booking.id; localStorage.setItem('bahaya_booking_id',res.d.booking.id);
+          showBooking(res.d.booking, res.d.label);
+        } else if(res.d.error==='slot_taken'){
+          $('bErr').textContent='Waqtigan waa la qabsaday / Tiden er optaget - vælg en anden';
+          bSelectedSlot=null; refreshState();
+        } else { $('bErr').textContent='Fejl - prøv igen'; }
+      })
+      .catch(function(){ $('bookBtn').disabled=false; $('bErr').textContent='Ingen forbindelse'; });
+  });
+
+  $('cancelBookBtn').addEventListener('click', function(){
+    localStorage.removeItem('bahaya_booking_id'); myBookingId=null;
+    bSelectedService=null; bSelectedSlot=null; $('bName').value='';
+    $('bServices').querySelectorAll('.service-btn').forEach(function(x){x.classList.remove('selected')});
+    decideView();
+  });
+
+  function showBooking(b, label){
+    showView('bookingConfirmView');
+    $('cbService').textContent=b.service;
+    $('cbTime').textContent=b.time;
+    $('cbName').textContent=b.name;
+    $('cbDate').textContent=labelText(label);
+  }
+
+  // ---- Beslut hvilken side der vises ----
+  function decideView(){
+    if(myTicketId){ /* håndteres af poll */ return; }
+    if(myBookingId){ return; }
+    if(lastState && lastState.open){ showView('formView'); }
+    else if(lastState){ $('hoursText').textContent = pad(lastState.openHour)+':00–'+pad(lastState.closeHour)+':00'; renderSlots(lastState); showView('bookingView'); }
+  }
+  function pad(n){return String(n).padStart(2,'0');}
+
+  // ---- Poll ----
+  function refreshState(){
+    return fetch('/api/state').then(function(r){return r.json();}).then(function(d){
+      lastState=d; $('live').classList.remove('off');
+      // opdater slots hvis vi står på booking-siden
+      if($('bookingView').classList.contains('show')) renderSlots(d);
+      return d;
+    }).catch(function(){ $('live').classList.add('off'); });
   }
 
   function poll(){
-    var live = document.getElementById('live');
     if(myTicketId){
-      fetch('/api/ticket?id=' + encodeURIComponent(myTicketId))
-        .then(function(r){
-          if(r.status === 404){ // nummeret findes ikke længere (fx reset)
-            localStorage.removeItem('bahaya_ticket_id');
-            myTicketId = null;
-            document.getElementById('newBtn').click();
-            throw new Error('gone');
-          }
-          return r.json();
-        })
-        .then(function(d){
-          live.classList.remove('off');
-          if(document.getElementById('formView').classList.contains('hide')){
-            updateTicketStatus(d);
-          } else {
-            showTicket(d);
-          }
-        })
-        .catch(function(){ live.classList.add('off'); });
+      fetch('/api/ticket?id='+encodeURIComponent(myTicketId)).then(function(r){
+        if(r.status===404){ localStorage.removeItem('bahaya_ticket_id'); myTicketId=null; refreshState().then(decideView); throw new Error('gone'); }
+        return r.json();
+      }).then(function(d){ $('live').classList.remove('off'); showTicket(d); })
+        .catch(function(){ $('live').classList.add('off'); });
+    } else if(myBookingId){
+      fetch('/api/booking?id='+encodeURIComponent(myBookingId)).then(function(r){
+        if(r.status===404){ localStorage.removeItem('bahaya_booking_id'); myBookingId=null; refreshState().then(decideView); throw new Error('gone'); }
+        return r.json();
+      }).then(function(res){ $('live').classList.remove('off'); showBooking(res.booking,res.label); })
+        .catch(function(){ $('live').classList.add('off'); });
     } else {
-      // Bare tjek forbindelsen
-      fetch('/api/state').then(function(){live.classList.remove('off');})
-        .catch(function(){live.classList.add('off');});
+      refreshState().then(decideView);
     }
   }
 
-  // Genskab nummer efter refresh
-  if(myTicketId){
-    fetch('/api/ticket?id=' + encodeURIComponent(myTicketId))
-      .then(function(r){ if(r.status===404){localStorage.removeItem('bahaya_ticket_id');myTicketId=null;return null;} return r.json();})
-      .then(function(d){ if(d && d.id) showTicket(d); });
-  }
+  // Start: genskab ticket/booking efter refresh, ellers vis rigtig side
+  refreshState().then(function(){
+    if(myTicketId){
+      fetch('/api/ticket?id='+encodeURIComponent(myTicketId))
+        .then(function(r){ if(r.status===404){localStorage.removeItem('bahaya_ticket_id');myTicketId=null;return null;} return r.json();})
+        .then(function(d){ if(d&&d.id) showTicket(d); else decideView(); });
+    } else if(myBookingId){
+      fetch('/api/booking?id='+encodeURIComponent(myBookingId))
+        .then(function(r){ if(r.status===404){localStorage.removeItem('bahaya_booking_id');myBookingId=null;return null;} return r.json();})
+        .then(function(res){ if(res&&res.booking) showBooking(res.booking,res.label); else decideView(); });
+    } else { decideView(); }
+  });
+  setInterval(poll, 1600);
 
-  setInterval(poll, 1500);
-
-  // Lyd + vibration når man kaldes ind
+  // ---- Lyd + vibration ----
   function beep(){
     try{
-      var ctx = new (window.AudioContext||window.webkitAudioContext)();
-      var o = ctx.createOscillator(), g = ctx.createGain();
-      o.connect(g); g.connect(ctx.destination);
-      o.type='sine'; o.frequency.value=880;
-      g.gain.setValueAtTime(0.001, ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime+0.05);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.8);
-      o.start(); o.stop(ctx.currentTime+0.85);
+      var ctx=new (window.AudioContext||window.webkitAudioContext)();
+      var o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=880;
+      g.gain.setValueAtTime(0.001,ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.3,ctx.currentTime+0.05);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.8);
+      o.start();o.stop(ctx.currentTime+0.85);
     }catch(e){}
   }
   function vibrate(){ if(navigator.vibrate) navigator.vibrate([200,100,200]); }

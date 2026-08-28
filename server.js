@@ -32,6 +32,75 @@ function isAdmin(req) {
   return req.headers['x-admin-key'] === ADMIN_PASSWORD;
 }
 
+// --- Åbningstider (dansk tid) ---
+const TIMEZONE = 'Europe/Copenhagen';
+const OPEN_HOUR = parseInt(process.env.OPEN_HOUR || '10', 10);   // åbner kl. 10
+const CLOSE_HOUR = parseInt(process.env.CLOSE_HOUR || '16', 10); // lukker kl. 16
+const SLOT_MIN = 15;            // tid mellem booking-tider (minutter)
+const SLOT_CAPACITY = 1;        // hvor mange kan booke samme tid
+
+// Nuværende tid i dansk tid som { date:'YYYY-MM-DD', hour, minute, weekday }
+function localParts(d) {
+  d = d || new Date();
+  const fmt = new Intl.DateTimeFormat('en-CA', {
+    timeZone: TIMEZONE, year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false, weekday: 'short'
+  });
+  const p = {};
+  fmt.formatToParts(d).forEach(x => { p[x.type] = x.value; });
+  let hour = parseInt(p.hour, 10);
+  if (hour === 24) hour = 0;
+  return { date: p.year + '-' + p.month + '-' + p.day, hour: hour, minute: parseInt(p.minute, 10), weekday: p.weekday };
+}
+
+function isOpenNow(lp) {
+  lp = lp || localParts();
+  return lp.hour >= OPEN_HOUR && lp.hour < CLOSE_HOUR;
+}
+
+function addDays(dateStr, n) {
+  const a = dateStr.split('-').map(Number);
+  const dt = new Date(Date.UTC(a[0], a[1] - 1, a[2]));
+  dt.setUTCDate(dt.getUTCDate() + n);
+  return dt.getUTCFullYear() + '-' +
+    String(dt.getUTCMonth() + 1).padStart(2, '0') + '-' +
+    String(dt.getUTCDate()).padStart(2, '0');
+}
+
+// Næste åbningsdag man kan booke: i dag hvis før åbning, ellers i morgen
+function bookingDate(lp) {
+  lp = lp || localParts();
+  if (lp.hour < OPEN_HOUR) return lp.date;
+  return addDays(lp.date, 1);
+}
+
+// Alle tider på en åbningsdag: 10:00, 10:15 ... 15:45
+function daySlots() {
+  const slots = [];
+  for (let h = OPEN_HOUR; h < CLOSE_HOUR; h++) {
+    for (let m = 0; m < 60; m += SLOT_MIN) {
+      slots.push(String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'));
+    }
+  }
+  return slots;
+}
+
+// Ledige/optagede tider for en bestemt dato
+function slotAvailability(date) {
+  return daySlots().map(function (time) {
+    const count = state.bookings.filter(function (b) { return b.date === date && b.time === time; }).length;
+    return { time: time, taken: count >= SLOT_CAPACITY };
+  });
+}
+
+// Fjern bookinger fra dage der er passeret
+function prunePastBookings(lp) {
+  lp = lp || localParts();
+  const before = state.bookings.length;
+  state.bookings = state.bookings.filter(function (b) { return b.date >= lp.date; });
+  if (state.bookings.length !== before) saveState();
+}
+
 // ---------------------------------------------------------------------------
 // State (køens data)
 // ---------------------------------------------------------------------------
@@ -39,7 +108,8 @@ let state = {
   nextNumber: 1,           // næste kønummer der uddeles
   tickets: [],             // alle numre { id, number, service, name, status, createdAt, calledAt }
   lastCalled: null,        // sidst kaldte kunde { number, name, service, at, seq }
-  callSeq: 0               // tæller op hver gang nogen kaldes ind (bruges til animation på display)
+  callSeq: 0,              // tæller op hver gang nogen kaldes ind (bruges til animation på display)
+  bookings: []             // bookede tider { id, date, time, service, name, createdAt }
 };
 
 function loadState() {
@@ -49,6 +119,7 @@ function loadState() {
       const parsed = JSON.parse(raw);
       state = Object.assign(state, parsed);
       if (!Array.isArray(state.tickets)) state.tickets = [];
+      if (!Array.isArray(state.bookings)) state.bookings = [];
       console.log('State indlæst fra state.json (' + state.tickets.length + ' numre).');
     }
   } catch (err) {
@@ -77,12 +148,38 @@ function makeId() {
 // ---------------------------------------------------------------------------
 // Hjælpefunktioner til køen
 // ---------------------------------------------------------------------------
+// Pænt dansk dato-label, fx "I dag (fre 29-08)" / "I morgen (lør 30-08)"
+function dateLabel(date, lp) {
+  lp = lp || localParts();
+  const wd = { Mon: 'man', Tue: 'tir', Wed: 'ons', Thu: 'tor', Fri: 'fre', Sat: 'lør', Sun: 'søn' };
+  const a = date.split('-').map(Number);
+  const dt = new Date(Date.UTC(a[0], a[1] - 1, a[2]));
+  const weekday = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][dt.getUTCDay()];
+  let prefix = '';
+  if (date === lp.date) prefix = 'I dag / Maanta';
+  else if (date === addDays(lp.date, 1)) prefix = 'I morgen / Berri';
+  return { date: date, weekday: wd[weekday] || weekday, dayMonth: date.slice(8) + '-' + date.slice(5, 7), prefix: prefix };
+}
+
 function publicState() {
+  const lp = localParts();
+  const bDate = bookingDate(lp);
   return {
     services: SERVICES,
     nextNumber: state.nextNumber,
     lastCalled: state.lastCalled,
     callSeq: state.callSeq,
+    open: isOpenNow(lp),
+    localTime: String(lp.hour).padStart(2, '0') + ':' + String(lp.minute).padStart(2, '0'),
+    localDate: lp.date,
+    openHour: OPEN_HOUR,
+    closeHour: CLOSE_HOUR,
+    bookingDate: bDate,
+    bookingLabel: dateLabel(bDate, lp),
+    slots: slotAvailability(bDate),
+    bookings: state.bookings
+      .filter(function (b) { return b.date >= lp.date; })
+      .sort(function (a, b) { return (a.date + a.time).localeCompare(b.date + b.time); }),
     tickets: state.tickets.map(t => ({
       id: t.id,
       number: t.number,
@@ -188,8 +285,9 @@ async function handleApi(req, res, url) {
     });
   }
 
-  // Kunden tager et nummer
+  // Kunden tager et nummer (kun i åbningstiden)
   if (route === '/api/take' && req.method === 'POST') {
+    if (!isOpenNow()) return sendJson(res, 403, { error: 'closed' });
     const body = await readBody(req);
     const service = (body.service || '').trim();
     const name = (body.name || '').trim().slice(0, 40);
@@ -215,6 +313,52 @@ async function handleApi(req, res, url) {
       status: ticket.status,
       ahead: peopleAhead(ticket)
     });
+  }
+
+  // Kunden booker en tid til næste åbningsdag
+  if (route === '/api/book' && req.method === 'POST') {
+    const lp = localParts();
+    prunePastBookings(lp);
+    const body = await readBody(req);
+    const service = (body.service || '').trim();
+    const name = (body.name || '').trim().slice(0, 40);
+    const time = (body.time || '').trim();
+    const bDate = bookingDate(lp);
+    if (!SERVICES.includes(service)) return sendJson(res, 400, { error: 'invalid_service' });
+    if (!name) return sendJson(res, 400, { error: 'missing_name' });
+    if (!daySlots().includes(time)) return sendJson(res, 400, { error: 'invalid_time' });
+    // Tjek at tiden ikke er fyldt
+    const taken = state.bookings.filter(function (b) { return b.date === bDate && b.time === time; }).length;
+    if (taken >= SLOT_CAPACITY) return sendJson(res, 409, { error: 'slot_taken' });
+
+    const booking = {
+      id: makeId(),
+      date: bDate,
+      time: time,
+      service: service,
+      name: name,
+      createdAt: Date.now()
+    };
+    state.bookings.push(booking);
+    saveState();
+    return sendJson(res, 200, { booking: booking, label: dateLabel(bDate, lp) });
+  }
+
+  // Kunden ser sin egen booking
+  if (route === '/api/booking' && req.method === 'GET') {
+    const id = url.searchParams.get('id');
+    const b = state.bookings.find(function (x) { return x.id === id; });
+    if (!b) return sendJson(res, 404, { error: 'not_found' });
+    return sendJson(res, 200, { booking: b, label: dateLabel(b.date) });
+  }
+
+  // Staff fjerner en booking (fx når kunden er ekspederet)
+  if (route === '/api/booking-remove' && req.method === 'POST') {
+    if (!isAdmin(req)) return sendJson(res, 401, { error: 'unauthorized' });
+    const body = await readBody(req);
+    state.bookings = state.bookings.filter(function (b) { return b.id !== body.id; });
+    saveState();
+    return sendJson(res, 200, { ok: true });
   }
 
   // Staff kalder en kunde ind

@@ -71,6 +71,19 @@
   .lockerr{color:#fca5a5;min-height:20px;margin-top:10px;font-size:14px}
   .logout{background:transparent;border:2px solid var(--line);color:var(--muted);
     border-radius:10px;padding:8px 12px;font-weight:700;cursor:pointer;font-size:13px}
+  .bookings{margin-top:28px}
+  .bk-head{font-size:18px;margin:0 0 12px}
+  .bk-count{background:var(--brand);color:#04222f;border-radius:20px;padding:2px 10px;font-size:14px;margin-left:6px}
+  .bk-date{color:var(--muted);font-size:13px;font-weight:700;margin:14px 0 8px;text-transform:uppercase;letter-spacing:.5px}
+  .bk-row{display:flex;align-items:center;gap:14px;background:var(--card);border:2px solid var(--line);
+    border-radius:12px;padding:12px 14px;margin-bottom:8px}
+  .bk-time{font-size:22px;font-weight:900;min-width:64px;color:var(--brand)}
+  .bk-info{flex:1;min-width:0}
+  .bk-name{font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bk-svc{color:var(--muted);font-size:13px;display:flex;align-items:center;gap:6px;margin-top:2px}
+  .bk-remove{padding:10px 12px;border:2px solid var(--line);border-radius:10px;background:transparent;
+    color:var(--muted);font-weight:700;cursor:pointer;font-size:13px}
+
   .reset{margin-top:22px;text-align:center}
   .reset button{padding:12px 22px;border:2px solid var(--red);border-radius:12px;background:transparent;
     color:var(--red);font-weight:700;cursor:pointer;font-size:15px}
@@ -111,6 +124,11 @@
 
   <div class="list" id="list"></div>
   <div class="empty" id="empty" style="display:none">Ingen i kø / Saf ma jiro</div>
+
+  <div class="bookings" id="bookingsSection" style="display:none">
+    <h3 class="bk-head">Ballamaha / Bookede tider <span class="bk-count" id="bkCount">0</span></h3>
+    <div id="bookingsList"></div>
+  </div>
 
   <div class="reset">
     <button id="resetBtn">Reset Numbers / Nulstil køen</button>
@@ -288,11 +306,47 @@
   function esc(s){return String(s).replace(/[&<>"']/g,function(c){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 
+  function removeBooking(id){
+    if(!confirm('Fjern denne booking?')) return;
+    fetch('/api/booking-remove',{method:'POST',headers:adminHeaders(),
+      body:JSON.stringify({id:id})}).then(checkAuth).then(load).catch(function(){});
+  }
+
+  function renderBookings(){
+    var section=document.getElementById('bookingsSection');
+    var b = (lastData && lastData.bookings) ? lastData.bookings : [];
+    if(b.length===0){ section.style.display='none'; return; }
+    section.style.display='block';
+    document.getElementById('bkCount').textContent=b.length;
+    // grupper efter dato (b er allerede sorteret dato+tid fra serveren)
+    var html='', curDate=null;
+    b.forEach(function(x){
+      if(x.date!==curDate){
+        curDate=x.date;
+        var lbl = dateHeading(x.date);
+        html += '<div class="bk-date">'+lbl+'</div>';
+      }
+      html += '<div class="bk-row">'+
+        '<div class="bk-time">'+x.time+'</div>'+
+        '<div class="bk-info"><div class="bk-name">'+esc(x.name)+'</div>'+
+          '<div class="bk-svc"><span class="sdot '+sdotClass(x.service)+'"></span>'+esc(x.service)+'</div></div>'+
+        '<button class="bk-remove" onclick="removeBooking(\''+x.id+'\')">Fjern</button>'+
+      '</div>';
+    });
+    document.getElementById('bookingsList').innerHTML=html;
+  }
+  function dateHeading(date){
+    var today = lastData ? lastData.localDate : null;
+    var pre = (date===today) ? 'I DAG &middot; ' : '';
+    var a=date.split('-');
+    return pre + a[2]+'-'+a[1]+'-'+a[0];
+  }
+
   function load(){
     return fetch('/api/state').then(function(r){return r.json();}).then(function(d){
       document.getElementById('live').classList.remove('off');
       document.getElementById('liveText').textContent='Forbundet';
-      lastData=d; render();
+      lastData=d; render(); renderBookings();
     }).catch(function(){
       document.getElementById('live').classList.add('off');
       document.getElementById('liveText').textContent='Ingen forbindelse';
