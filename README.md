@@ -109,9 +109,13 @@ Vil du ændre åbningstiderne? I Railway → **Variables**:
 - `OPEN_HOUR` = fx `10`
 - `CLOSE_HOUR` = fx `18`
 
-**Hold fri (luk manuelt):** På staff-siden er der en knap **"Hold fri / Luk butik"**.
-Trykker du på den, lukkes butikken med det samme (også midt i åbningstiden) — kunder kan
-så kun booke tider. Tryk **"Åbn butik igen"** for at åbne. Status vises øverst på staff-siden.
+**Manuel styring (åbn/luk):** Øverst på staff-siden vises butikkens status og en knap:
+
+- Er butikken **åben** → knappen hedder **"Hold fri / Luk butik"** (lukker med det samme, også i åbningstiden).
+- Er butikken **lukket** → knappen hedder **"Åbn butik nu"** (åbner med det samme, også uden for 10–18).
+- Har du overstyret manuelt, vises **"↺ Automatisk efter åbningstid"** — tryk for at følge de normale tider igen.
+
+Så du kan altid selv **åbne** eller **lukke** butikken, uanset klokken.
 
 ## Data og sikkerhed
 

@@ -28,6 +28,8 @@
   .shoptoggle{padding:12px 16px;border-radius:12px;border:2px solid var(--line);background:transparent;
     color:var(--text);font-weight:800;cursor:pointer;font-size:15px;white-space:nowrap}
   .shoptoggle.reopen{border-color:var(--green);color:var(--green)}
+  .autobtn{width:100%;margin:-4px 0 12px;padding:10px;border-radius:10px;border:1px dashed var(--line);
+    background:transparent;color:var(--muted);font-weight:700;cursor:pointer;font-size:13px}
 
   .callnext{width:100%;padding:18px;border:none;border-radius:16px;background:var(--green);
     color:#062b12;font-size:20px;font-weight:800;cursor:pointer;margin-bottom:14px;
@@ -121,8 +123,9 @@
 
   <div class="shopbar">
     <div class="shopstatus" id="shopStatus">—</div>
-    <button class="shoptoggle" id="shopToggle">Hold fri / Luk butik</button>
+    <button class="shoptoggle" id="shopToggle">—</button>
   </div>
+  <button class="autobtn" id="autoBtn" style="display:none">↺ Automatisk efter åbningstid</button>
 
   <button class="callnext" id="callNextBtn">
     U yeer kan xiga / Kald næste ind
@@ -320,28 +323,47 @@
   function esc(s){return String(s).replace(/[&<>"']/g,function(c){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 
+  function setMode(mode, confirmMsg){
+    if(confirmMsg && !confirm(confirmMsg)) return;
+    fetch('/api/set-mode',{method:'POST',headers:adminHeaders(),
+      body:JSON.stringify({mode:mode})}).then(checkAuth).then(load).catch(function(){});
+  }
+
   document.getElementById('shopToggle').addEventListener('click', function(){
-    var wantClosed = !(lastData && lastData.manualClosed);
-    if(wantClosed && !confirm('Luk butikken og hold fri? Kunder kan så kun booke tider.')) return;
-    fetch('/api/set-closed',{method:'POST',headers:adminHeaders(),
-      body:JSON.stringify({closed:wantClosed})}).then(checkAuth).then(load).catch(function(){});
+    if(!lastData) return;
+    if(lastData.open){
+      setMode('closed','Luk butikken? Kunder kan så kun booke tider.');
+    } else {
+      setMode('open');  // åbn nu (også uden for åbningstid)
+    }
+  });
+  document.getElementById('autoBtn').addEventListener('click', function(){
+    setMode('auto');
   });
 
   function renderShop(){
     if(!lastData) return;
     var st=document.getElementById('shopStatus');
     var tg=document.getElementById('shopToggle');
+    var auto=document.getElementById('autoBtn');
+    var ov=lastData.override || 'auto';
     st.classList.remove('open','closed'); tg.classList.remove('reopen');
-    if(lastData.manualClosed){
-      st.textContent='LUKKET · Fri / Xiran'; st.classList.add('closed');
-      tg.textContent='Åbn butik igen'; tg.classList.add('reopen');
-    } else if(lastData.open){
-      st.textContent='ÅBEN · Furan ('+lastData.localTime+')'; st.classList.add('open');
-      tg.textContent='Hold fri / Luk butik';
+
+    // Status-tekst
+    if(lastData.open){
+      st.textContent='ÅBEN · Furan ('+lastData.localTime+')' + (ov==='open'?' · manuelt':'');
+      st.classList.add('open');
     } else {
-      st.textContent='Lukket · uden for åbningstid ('+lastData.localTime+')'; st.classList.add('closed');
-      tg.textContent='Hold fri / Luk butik';
+      st.textContent=(ov==='closed'?'LUKKET · Fri':'Lukket · uden for åbningstid')+' ('+lastData.localTime+')';
+      st.classList.add('closed');
     }
+
+    // Knap: luk hvis åben, åbn hvis lukket
+    if(lastData.open){ tg.textContent='Hold fri / Luk butik'; }
+    else { tg.textContent='Åbn butik nu'; tg.classList.add('reopen'); }
+
+    // Auto-knap vises kun når admin har overstyret
+    auto.style.display = (ov==='auto') ? 'none' : 'block';
   }
 
   function removeBooking(id){

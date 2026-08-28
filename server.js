@@ -55,7 +55,8 @@ function localParts(d) {
 
 function isOpenNow(lp) {
   lp = lp || localParts();
-  if (state.manualClosed) return false;          // admin holder fri
+  if (state.override === 'open') return true;     // admin tvinger åben
+  if (state.override === 'closed') return false;  // admin holder fri
   return lp.hour >= OPEN_HOUR && lp.hour < CLOSE_HOUR;
 }
 
@@ -72,7 +73,7 @@ function addDays(dateStr, n) {
 function bookingDate(lp) {
   lp = lp || localParts();
   // Holder admin fri, eller er vi efter åbningstid -> book i morgen. Ellers (før åbning) i dag.
-  if (!state.manualClosed && lp.hour < OPEN_HOUR) return lp.date;
+  if (state.override !== 'closed' && lp.hour < OPEN_HOUR) return lp.date;
   return addDays(lp.date, 1);
 }
 
@@ -112,7 +113,7 @@ let state = {
   lastCalled: null,        // sidst kaldte kunde { number, name, service, at, seq }
   callSeq: 0,              // tæller op hver gang nogen kaldes ind (bruges til animation på display)
   bookings: [],            // bookede tider { id, date, time, service, name, createdAt }
-  manualClosed: false      // admin kan lukke butikken manuelt (fridag)
+  override: 'auto'         // admin-styring: 'auto' (åbningstid), 'open' (tvunget åben), 'closed' (fri)
 };
 
 function loadState() {
@@ -123,7 +124,10 @@ function loadState() {
       state = Object.assign(state, parsed);
       if (!Array.isArray(state.tickets)) state.tickets = [];
       if (!Array.isArray(state.bookings)) state.bookings = [];
-      if (typeof state.manualClosed !== 'boolean') state.manualClosed = false;
+      // migrer fra gammelt manualClosed-felt
+      if (!state.override) state.override = (state.manualClosed ? 'closed' : 'auto');
+      if (['auto', 'open', 'closed'].indexOf(state.override) === -1) state.override = 'auto';
+      delete state.manualClosed;
       console.log('State indlæst fra state.json (' + state.tickets.length + ' numre).');
     }
   } catch (err) {
@@ -174,7 +178,7 @@ function publicState() {
     lastCalled: state.lastCalled,
     callSeq: state.callSeq,
     open: isOpenNow(lp),
-    manualClosed: state.manualClosed,
+    override: state.override,
     localTime: String(lp.hour).padStart(2, '0') + ':' + String(lp.minute).padStart(2, '0'),
     localDate: lp.date,
     openHour: OPEN_HOUR,
@@ -357,13 +361,15 @@ async function handleApi(req, res, url) {
     return sendJson(res, 200, { booking: b, label: dateLabel(b.date) });
   }
 
-  // Admin holder fri / åbner igen (manuelt luk)
-  if (route === '/api/set-closed' && req.method === 'POST') {
+  // Admin styrer åben/lukket: mode = 'auto' | 'open' | 'closed'
+  if (route === '/api/set-mode' && req.method === 'POST') {
     if (!isAdmin(req)) return sendJson(res, 401, { error: 'unauthorized' });
     const body = await readBody(req);
-    state.manualClosed = !!body.closed;
+    const mode = body.mode;
+    if (['auto', 'open', 'closed'].indexOf(mode) === -1) return sendJson(res, 400, { error: 'invalid_mode' });
+    state.override = mode;
     saveState();
-    return sendJson(res, 200, { ok: true, manualClosed: state.manualClosed });
+    return sendJson(res, 200, { ok: true, override: state.override });
   }
 
   // Staff fjerner en booking (fx når kunden er ekspederet)

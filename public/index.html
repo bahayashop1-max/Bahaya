@@ -338,7 +338,7 @@
     if(myBookingId){ return; }
     if(lastState && lastState.open){ showView('formView'); }
     else if(lastState){
-      $('closedTitle').textContent = lastState.manualClosed ? 'Xiran maanta / Lukket i dag' : 'Xiran hadda / Lukket nu';
+      $('closedTitle').textContent = (lastState.override==='closed') ? 'Xiran maanta / Lukket i dag' : 'Xiran hadda / Lukket nu';
       $('hoursText').textContent = pad(lastState.openHour)+':00–'+pad(lastState.closeHour)+':00';
       renderSlots(lastState); showView('bookingView');
     }
