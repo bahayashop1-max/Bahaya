@@ -98,7 +98,7 @@ Til rigtige kunder bruger du Railway-linket ovenfor.
 
 ## Åbningstider og booking
 
-Systemet har åbningstider (standard **10:00–16:00**, dansk tid):
+Systemet har åbningstider (standard **10:00–18:00**, dansk tid):
 
 - **Inden for åbningstid:** kunden tager et live-nummer som normalt.
 - **Uden for åbningstid (lukket):** kunden kan ikke tage nummer, men kan **booke en tid**
@@ -107,7 +107,11 @@ Systemet har åbningstider (standard **10:00–16:00**, dansk tid):
 
 Vil du ændre åbningstiderne? I Railway → **Variables**:
 - `OPEN_HOUR` = fx `10`
-- `CLOSE_HOUR` = fx `16`
+- `CLOSE_HOUR` = fx `18`
+
+**Hold fri (luk manuelt):** På staff-siden er der en knap **"Hold fri / Luk butik"**.
+Trykker du på den, lukkes butikken med det samme (også midt i åbningstiden) — kunder kan
+så kun booke tider. Tryk **"Åbn butik igen"** for at åbne. Status vises øverst på staff-siden.
 
 ## Data og sikkerhed
 

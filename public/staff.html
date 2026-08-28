@@ -20,6 +20,15 @@
   .dotlive{width:9px;height:9px;border-radius:50%;background:var(--green)}
   .dotlive.off{background:var(--red)}
 
+  .shopbar{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .shopstatus{flex:1;font-weight:800;font-size:16px;padding:12px 16px;border-radius:12px;
+    background:var(--card);border:2px solid var(--line)}
+  .shopstatus.open{color:var(--green);border-color:#14532d;background:#052e1a}
+  .shopstatus.closed{color:#fca5a5;border-color:#7f1d1d;background:#3b0a0a}
+  .shoptoggle{padding:12px 16px;border-radius:12px;border:2px solid var(--line);background:transparent;
+    color:var(--text);font-weight:800;cursor:pointer;font-size:15px;white-space:nowrap}
+  .shoptoggle.reopen{border-color:var(--green);color:var(--green)}
+
   .callnext{width:100%;padding:18px;border:none;border-radius:16px;background:var(--green);
     color:#062b12;font-size:20px;font-weight:800;cursor:pointer;margin-bottom:14px;
     display:flex;align-items:center;justify-content:center;gap:12px}
@@ -109,6 +118,11 @@
       <button class="logout" id="logoutBtn">Log ud</button>
     </div>
   </header>
+
+  <div class="shopbar">
+    <div class="shopstatus" id="shopStatus">—</div>
+    <button class="shoptoggle" id="shopToggle">Hold fri / Luk butik</button>
+  </div>
 
   <button class="callnext" id="callNextBtn">
     U yeer kan xiga / Kald næste ind
@@ -306,6 +320,30 @@
   function esc(s){return String(s).replace(/[&<>"']/g,function(c){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 
+  document.getElementById('shopToggle').addEventListener('click', function(){
+    var wantClosed = !(lastData && lastData.manualClosed);
+    if(wantClosed && !confirm('Luk butikken og hold fri? Kunder kan så kun booke tider.')) return;
+    fetch('/api/set-closed',{method:'POST',headers:adminHeaders(),
+      body:JSON.stringify({closed:wantClosed})}).then(checkAuth).then(load).catch(function(){});
+  });
+
+  function renderShop(){
+    if(!lastData) return;
+    var st=document.getElementById('shopStatus');
+    var tg=document.getElementById('shopToggle');
+    st.classList.remove('open','closed'); tg.classList.remove('reopen');
+    if(lastData.manualClosed){
+      st.textContent='LUKKET · Fri / Xiran'; st.classList.add('closed');
+      tg.textContent='Åbn butik igen'; tg.classList.add('reopen');
+    } else if(lastData.open){
+      st.textContent='ÅBEN · Furan ('+lastData.localTime+')'; st.classList.add('open');
+      tg.textContent='Hold fri / Luk butik';
+    } else {
+      st.textContent='Lukket · uden for åbningstid ('+lastData.localTime+')'; st.classList.add('closed');
+      tg.textContent='Hold fri / Luk butik';
+    }
+  }
+
   function removeBooking(id){
     if(!confirm('Fjern denne booking?')) return;
     fetch('/api/booking-remove',{method:'POST',headers:adminHeaders(),
@@ -346,7 +384,7 @@
     return fetch('/api/state').then(function(r){return r.json();}).then(function(d){
       document.getElementById('live').classList.remove('off');
       document.getElementById('liveText').textContent='Forbundet';
-      lastData=d; render(); renderBookings();
+      lastData=d; render(); renderBookings(); renderShop();
     }).catch(function(){
       document.getElementById('live').classList.add('off');
       document.getElementById('liveText').textContent='Ingen forbindelse';

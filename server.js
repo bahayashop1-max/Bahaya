@@ -35,7 +35,7 @@ function isAdmin(req) {
 // --- Åbningstider (dansk tid) ---
 const TIMEZONE = 'Europe/Copenhagen';
 const OPEN_HOUR = parseInt(process.env.OPEN_HOUR || '10', 10);   // åbner kl. 10
-const CLOSE_HOUR = parseInt(process.env.CLOSE_HOUR || '16', 10); // lukker kl. 16
+const CLOSE_HOUR = parseInt(process.env.CLOSE_HOUR || '18', 10); // lukker kl. 18
 const SLOT_MIN = 15;            // tid mellem booking-tider (minutter)
 const SLOT_CAPACITY = 1;        // hvor mange kan booke samme tid
 
@@ -55,6 +55,7 @@ function localParts(d) {
 
 function isOpenNow(lp) {
   lp = lp || localParts();
+  if (state.manualClosed) return false;          // admin holder fri
   return lp.hour >= OPEN_HOUR && lp.hour < CLOSE_HOUR;
 }
 
@@ -70,7 +71,8 @@ function addDays(dateStr, n) {
 // Næste åbningsdag man kan booke: i dag hvis før åbning, ellers i morgen
 function bookingDate(lp) {
   lp = lp || localParts();
-  if (lp.hour < OPEN_HOUR) return lp.date;
+  // Holder admin fri, eller er vi efter åbningstid -> book i morgen. Ellers (før åbning) i dag.
+  if (!state.manualClosed && lp.hour < OPEN_HOUR) return lp.date;
   return addDays(lp.date, 1);
 }
 
@@ -109,7 +111,8 @@ let state = {
   tickets: [],             // alle numre { id, number, service, name, status, createdAt, calledAt }
   lastCalled: null,        // sidst kaldte kunde { number, name, service, at, seq }
   callSeq: 0,              // tæller op hver gang nogen kaldes ind (bruges til animation på display)
-  bookings: []             // bookede tider { id, date, time, service, name, createdAt }
+  bookings: [],            // bookede tider { id, date, time, service, name, createdAt }
+  manualClosed: false      // admin kan lukke butikken manuelt (fridag)
 };
 
 function loadState() {
@@ -120,6 +123,7 @@ function loadState() {
       state = Object.assign(state, parsed);
       if (!Array.isArray(state.tickets)) state.tickets = [];
       if (!Array.isArray(state.bookings)) state.bookings = [];
+      if (typeof state.manualClosed !== 'boolean') state.manualClosed = false;
       console.log('State indlæst fra state.json (' + state.tickets.length + ' numre).');
     }
   } catch (err) {
@@ -170,6 +174,7 @@ function publicState() {
     lastCalled: state.lastCalled,
     callSeq: state.callSeq,
     open: isOpenNow(lp),
+    manualClosed: state.manualClosed,
     localTime: String(lp.hour).padStart(2, '0') + ':' + String(lp.minute).padStart(2, '0'),
     localDate: lp.date,
     openHour: OPEN_HOUR,
@@ -350,6 +355,15 @@ async function handleApi(req, res, url) {
     const b = state.bookings.find(function (x) { return x.id === id; });
     if (!b) return sendJson(res, 404, { error: 'not_found' });
     return sendJson(res, 200, { booking: b, label: dateLabel(b.date) });
+  }
+
+  // Admin holder fri / åbner igen (manuelt luk)
+  if (route === '/api/set-closed' && req.method === 'POST') {
+    if (!isAdmin(req)) return sendJson(res, 401, { error: 'unauthorized' });
+    const body = await readBody(req);
+    state.manualClosed = !!body.closed;
+    saveState();
+    return sendJson(res, 200, { ok: true, manualClosed: state.manualClosed });
   }
 
   // Staff fjerner en booking (fx når kunden er ekspederet)
