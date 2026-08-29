@@ -47,7 +47,7 @@
   .wait-row .wname{flex:1;font-size:3.2vh;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .wait-row .wsvc{display:flex;align-items:center;gap:.6vw;font-size:2.2vh;color:var(--muted);font-weight:600}
   .sdot{width:1.6vh;height:1.6vh;border-radius:50%}
-  .sdot.MoneyGram{background:#f97316}.sdot.Ria{background:#a855f7}.sdot.Western{background:#facc15}
+  .sdot.MoneyGram{background:#f97316}.sdot.Ria{background:#a855f7}.sdot.Western{background:#facc15}.sdot.Bahaya{background:#14b8a6}
   .wait-empty{color:var(--muted);font-size:2.6vh;text-align:center;margin-top:4vh}
   .wait-more{color:var(--muted);font-size:2.2vh;text-align:center;padding-top:.5vh}
 
@@ -88,7 +88,7 @@
   var callbox = document.getElementById('callbox');
   var idle = document.getElementById('idle');
 
-  function sdotClass(svc){ return svc==='Western Union' ? 'Western' : svc; }
+  function sdotClass(svc){ return svc==='Western Union' ? 'Western' : (svc==='Bahaya Shop' ? 'Bahaya' : svc); }
   function esc(s){return String(s).replace(/[&<>"']/g,function(c){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 

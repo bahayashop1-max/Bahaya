@@ -22,7 +22,7 @@ const PUBLIC_DIR = path.join(__dirname, 'public');
 const DATA_DIR = process.env.DATA_DIR || __dirname;
 const STATE_FILE = path.join(DATA_DIR, 'state.json');
 
-const SERVICES = ['MoneyGram', 'Ria', 'Western Union'];
+const SERVICES = ['MoneyGram', 'Ria', 'Western Union', 'Bahaya Shop'];
 
 // Admin-adgangskode. Saettes som miljoevariabel ADMIN_PASSWORD paa Railway.
 // (Standardvaerdien her bruges kun hvis variablen ikke er sat.)

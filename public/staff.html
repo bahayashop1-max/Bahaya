@@ -55,7 +55,7 @@
   .name{font-size:19px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .svc{color:var(--muted);font-size:14px;display:flex;align-items:center;gap:6px;margin-top:2px}
   .sdot{width:10px;height:10px;border-radius:50%}
-  .sdot.MoneyGram{background:#f97316}.sdot.Ria{background:#a855f7}.sdot.Western{background:#facc15}
+  .sdot.MoneyGram{background:#f97316}.sdot.Ria{background:#a855f7}.sdot.Western{background:#facc15}.sdot.Bahaya{background:#14b8a6}
   .actions{display:flex;gap:8px}
   .call{padding:12px 18px;border:none;border-radius:12px;background:var(--green);color:#062b12;
     font-weight:800;font-size:16px;cursor:pointer;white-space:nowrap}
@@ -137,6 +137,7 @@
     <button class="filter" data-f="MoneyGram">MoneyGram <span class="count" id="c-MoneyGram">0</span></button>
     <button class="filter" data-f="Ria">Ria <span class="count" id="c-Ria">0</span></button>
     <button class="filter" data-f="Western Union">Western Union <span class="count" id="c-Western Union">0</span></button>
+    <button class="filter" data-f="Bahaya Shop">Bahaya Shop <span class="count" id="c-Bahaya Shop">0</span></button>
   </div>
 
   <div class="list" id="list"></div>
@@ -280,6 +281,7 @@
 
   function sdotClass(svc){
     if(svc==='Western Union') return 'Western';
+    if(svc==='Bahaya Shop') return 'Bahaya';
     return svc;
   }
 
@@ -287,12 +289,13 @@
     if(!lastData) return;
     var tickets = lastData.tickets.filter(function(t){return t.status!=='done';});
     // tæl pr. service (kun ventende)
-    var counts={all:0,'MoneyGram':0,'Ria':0,'Western Union':0};
+    var counts={all:0,'MoneyGram':0,'Ria':0,'Western Union':0,'Bahaya Shop':0};
     tickets.forEach(function(t){ if(t.status==='waiting'){counts.all++;counts[t.service]++;} });
     document.getElementById('c-all').textContent=counts.all;
     document.getElementById('c-MoneyGram').textContent=counts['MoneyGram'];
     document.getElementById('c-Ria').textContent=counts['Ria'];
     document.getElementById('c-Western Union').textContent=counts['Western Union'];
+    document.getElementById('c-Bahaya Shop').textContent=counts['Bahaya Shop'];
 
     var shown = tickets.filter(function(t){return filter==='all'||t.service===filter;});
     shown.sort(function(a,b){return a.number-b.number;});
