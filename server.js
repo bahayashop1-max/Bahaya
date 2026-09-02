@@ -113,7 +113,8 @@ let state = {
   lastCalled: null,        // sidst kaldte kunde { number, name, service, at, seq }
   callSeq: 0,              // tæller op hver gang nogen kaldes ind (bruges til animation på display)
   bookings: [],            // bookede tider { id, date, time, service, name, createdAt }
-  override: 'auto'         // admin-styring: 'auto' (åbningstid), 'open' (tvunget åben), 'closed' (fri)
+  override: 'auto',        // admin-styring: 'auto' (åbningstid), 'open' (tvunget åben), 'closed' (fri)
+  staffStatus: 'active'    // vises på display: 'active' | 'pause' | 'salah'
 };
 
 function loadState() {
@@ -127,6 +128,7 @@ function loadState() {
       // migrer fra gammelt manualClosed-felt
       if (!state.override) state.override = (state.manualClosed ? 'closed' : 'auto');
       if (['auto', 'open', 'closed'].indexOf(state.override) === -1) state.override = 'auto';
+      if (['active', 'pause', 'salah'].indexOf(state.staffStatus) === -1) state.staffStatus = 'active';
       delete state.manualClosed;
       console.log('State indlæst fra state.json (' + state.tickets.length + ' numre).');
     }
@@ -179,6 +181,7 @@ function publicState() {
     callSeq: state.callSeq,
     open: isOpenNow(lp),
     override: state.override,
+    staffStatus: state.staffStatus,
     localTime: String(lp.hour).padStart(2, '0') + ':' + String(lp.minute).padStart(2, '0'),
     localDate: lp.date,
     openHour: OPEN_HOUR,
@@ -370,6 +373,16 @@ async function handleApi(req, res, url) {
     state.override = mode;
     saveState();
     return sendJson(res, 200, { ok: true, override: state.override });
+  }
+
+  // Admin sætter medarbejder-status (vises på display): active | pause | salah
+  if (route === '/api/staff-status' && req.method === 'POST') {
+    if (!isAdmin(req)) return sendJson(res, 401, { error: 'unauthorized' });
+    const body = await readBody(req);
+    if (['active', 'pause', 'salah'].indexOf(body.status) === -1) return sendJson(res, 400, { error: 'invalid_status' });
+    state.staffStatus = body.status;
+    saveState();
+    return sendJson(res, 200, { ok: true, staffStatus: state.staffStatus });
   }
 
   // Staff fjerner en booking (fx når kunden er ekspederet)

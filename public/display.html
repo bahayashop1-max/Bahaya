@@ -34,6 +34,11 @@
   .idle .big{font-size:5vh;font-weight:800;color:#cbd5e1}
   .idle .small{font-size:2.6vh;margin-top:1vh;line-height:1.4}
 
+  .statusbox{text-align:center}
+  .stat-emoji{font-size:14vh;line-height:1}
+  .stat-title{font-size:7vh;font-weight:900;color:#fbbf24;margin-top:1vh}
+  .stat-sub{font-size:3vh;color:#cbd5e1;margin-top:1.5vh;line-height:1.4}
+
   /* Højre: venter-liste */
   .wait-col{flex:1;display:flex;flex-direction:column;min-width:0}
   .wait-head{font-size:3vh;font-weight:800;margin-bottom:1.2vh;color:#e2e8f0;flex:0 0 auto}
@@ -70,6 +75,11 @@
         <div class="nr"><small>NR</small><span id="nr">0</span></div>
         <div class="cname" id="cname"></div>
         <div class="cservice" id="cservice"></div>
+      </div>
+      <div id="statusBox" class="statusbox" style="display:none">
+        <div class="stat-emoji" id="statEmoji">☕</div>
+        <div class="stat-title" id="statTitle"></div>
+        <div class="stat-sub" id="statSub"></div>
       </div>
     </div>
 
@@ -133,10 +143,35 @@
     list.innerHTML = html;
   }
 
+  var statusBox = document.getElementById('statusBox');
+  function showStaffStatus(status){
+    idle.style.display='none';
+    callbox.style.display='none';
+    statusBox.style.display='block';
+    if(status==='salah'){
+      document.getElementById('statEmoji').textContent='🕌';
+      document.getElementById('statTitle').textContent='SALAAD · BØN';
+      document.getElementById('statSub').innerHTML='Waa la tukanayaa &middot; Vi beder<br>Waan soo laabanaynaa / Vi er straks tilbage';
+    } else {
+      document.getElementById('statEmoji').textContent='☕';
+      document.getElementById('statTitle').textContent='NASASHO · PAUSE';
+      document.getElementById('statSub').innerHTML='Waan soo laabanaynaa / Vi er straks tilbage';
+    }
+  }
+
   function poll(){
     fetch('/api/state').then(function(r){return r.json();}).then(function(d){
       // Venter-listen (opdaterer med det samme en kunde tager nummer)
       renderWaiting(d.tickets || []);
+
+      // Medarbejder på pause/bøn -> vis besked i stedet for kaldt-ind
+      if(d.staffStatus && d.staffStatus!=='active'){
+        showStaffStatus(d.staffStatus);
+        lastSeq = d.lastCalled ? d.lastCalled.seq : -1; // undgå animation når vi kommer tilbage
+        return;
+      }
+      statusBox.style.display='none';
+
       // Kaldt ind nu
       if(d.lastCalled){
         showCalled(d.lastCalled);

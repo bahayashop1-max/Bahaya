@@ -31,6 +31,12 @@
   .autobtn{width:100%;margin:-4px 0 12px;padding:10px;border-radius:10px;border:1px dashed var(--line);
     background:transparent;color:var(--muted);font-weight:700;cursor:pointer;font-size:13px}
 
+  .ssbar{display:flex;gap:8px;margin-bottom:14px}
+  .ss-btn{flex:1;padding:13px 8px;border-radius:12px;border:2px solid var(--line);background:var(--card);
+    color:var(--text);font-weight:800;cursor:pointer;font-size:15px}
+  .ss-btn.active{border-color:#fbbf24;background:#3b2f0b;color:#fbbf24}
+  .ss-btn.back{border-color:var(--green);color:var(--green)}
+
   .callnext{width:100%;padding:18px;border:none;border-radius:16px;background:var(--green);
     color:#062b12;font-size:20px;font-weight:800;cursor:pointer;margin-bottom:14px;
     display:flex;align-items:center;justify-content:center;gap:12px}
@@ -126,6 +132,12 @@
     <button class="shoptoggle" id="shopToggle">—</button>
   </div>
   <button class="autobtn" id="autoBtn" style="display:none">↺ Automatisk efter åbningstid</button>
+
+  <div class="ssbar">
+    <button class="ss-btn" id="ssPause">☕ Pause</button>
+    <button class="ss-btn" id="ssSalah">🕌 Salah / Bøn</button>
+    <button class="ss-btn back" id="ssBack" style="display:none">✓ Tilbage / Fortsæt</button>
+  </div>
 
   <button class="callnext" id="callNextBtn">
     U yeer kan xiga / Kald næste ind
@@ -344,6 +356,27 @@
     setMode('auto');
   });
 
+  function setStaffStatus(status){
+    fetch('/api/staff-status',{method:'POST',headers:adminHeaders(),
+      body:JSON.stringify({status:status})}).then(checkAuth).then(load).catch(function(){});
+  }
+  document.getElementById('ssPause').addEventListener('click', function(){
+    setStaffStatus((lastData&&lastData.staffStatus==='pause')?'active':'pause');
+  });
+  document.getElementById('ssSalah').addEventListener('click', function(){
+    setStaffStatus((lastData&&lastData.staffStatus==='salah')?'active':'salah');
+  });
+  document.getElementById('ssBack').addEventListener('click', function(){ setStaffStatus('active'); });
+
+  function renderStaffStatus(){
+    if(!lastData) return;
+    var s=lastData.staffStatus||'active';
+    var p=document.getElementById('ssPause'), sa=document.getElementById('ssSalah'), bk=document.getElementById('ssBack');
+    p.classList.toggle('active', s==='pause');
+    sa.classList.toggle('active', s==='salah');
+    bk.style.display = (s==='active') ? 'none' : 'block';
+  }
+
   function renderShop(){
     if(!lastData) return;
     var st=document.getElementById('shopStatus');
@@ -409,7 +442,7 @@
     return fetch('/api/state').then(function(r){return r.json();}).then(function(d){
       document.getElementById('live').classList.remove('off');
       document.getElementById('liveText').textContent='Forbundet';
-      lastData=d; render(); renderBookings(); renderShop();
+      lastData=d; render(); renderBookings(); renderShop(); renderStaffStatus();
     }).catch(function(){
       document.getElementById('live').classList.add('off');
       document.getElementById('liveText').textContent='Ingen forbindelse';
