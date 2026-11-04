@@ -46,6 +46,10 @@
     background:var(--card);color:var(--text);font-size:18px;
   }
   input[type=text]:focus{outline:none;border-color:var(--brand)}
+  .fields input[type=text]{margin-bottom:10px}
+  .fields input[type=text]:last-child{margin-bottom:0}
+  .transfer-fields{display:none}
+  .transfer-fields.show{display:block}
 
   .take{
     width:100%;margin-top:20px;padding:20px;border:none;border-radius:16px;
@@ -74,7 +78,8 @@
   .ticket-service{color:var(--muted);font-size:15px;font-weight:600}
   .ticket-nr{font-size:74px;font-weight:900;line-height:1;margin:8px 0;color:var(--text)}
   .ticket-nr small{font-size:26px;color:var(--muted);vertical-align:middle;margin-right:6px}
-  .ticket-name{font-size:20px;font-weight:700;margin-bottom:18px}
+  .ticket-name{font-size:20px;font-weight:700;margin-bottom:6px}
+  .ticket-detail{color:var(--muted);font-size:14px;font-weight:600;margin-bottom:12px;min-height:1px}
 
   .ahead{background:var(--tint);border-radius:14px;padding:16px;margin-top:8px}
   .ahead .num{font-size:40px;font-weight:900;color:var(--brand)}
@@ -128,8 +133,20 @@
       <button class="service-btn" data-service="Western Union"><span class="dot wu"></span>Western Union</button>
       <button class="service-btn" data-service="Bahaya Shop"><span class="dot bs"></span>Bahaya Shop</button>
     </div>
-    <h2>Magacaaga <small>Dit navn</small></h2>
-    <input type="text" id="name" maxlength="40" placeholder="Magaca / Navn" autocomplete="off">
+    <h2>Macluumaadkaaga <small>Dine oplysninger</small></h2>
+    <div class="fields">
+      <input type="text" id="name" maxlength="40" placeholder="Magaca / Navn" autocomplete="off">
+      <input type="text" id="address" maxlength="120" placeholder="Cinwaanka / Adresse" autocomplete="off">
+      <input type="text" id="phone" maxlength="30" inputmode="tel" placeholder="Telefoon / Telefonnummer" autocomplete="off">
+    </div>
+
+    <div class="transfer-fields fields" id="takeTransfer">
+      <h2>Faahfaahinta lacagta <small>Overførsel</small></h2>
+      <input type="text" id="recipientName" maxlength="60" placeholder="Qofka la dirayo / Modtager (navn)" autocomplete="off">
+      <input type="text" id="recipientNumber" maxlength="40" placeholder="Lambarka qofka / Modtagers nummer" autocomplete="off">
+      <input type="text" id="amount" maxlength="20" inputmode="decimal" placeholder="Qadarka (DKK) / Beløb" autocomplete="off">
+    </div>
+
     <button class="take" id="takeBtn">Qaado nambar / Tag et nummer</button>
     <div class="err" id="err"></div>
   </div>
@@ -140,6 +157,7 @@
       <div class="ticket-service" id="tService">MoneyGram</div>
       <div class="ticket-nr"><small>NR</small><span id="tNumber">1</span></div>
       <div class="ticket-name" id="tName">Navn</div>
+      <div class="ticket-detail" id="tDetail"></div>
       <div class="ahead" id="aheadBox">
         <div class="num" id="tAhead">0</div>
         <div class="lbl">Dad ku hor jira / Personer foran dig</div>
@@ -171,8 +189,19 @@
       <button class="service-btn" data-service="Bahaya Shop"><span class="dot bs"></span>Bahaya Shop</button>
     </div>
 
-    <h2>Magacaaga <small>Dit navn</small></h2>
-    <input type="text" id="bName" maxlength="40" placeholder="Magaca / Navn" autocomplete="off">
+    <h2>Macluumaadkaaga <small>Dine oplysninger</small></h2>
+    <div class="fields">
+      <input type="text" id="bName" maxlength="40" placeholder="Magaca / Navn" autocomplete="off">
+      <input type="text" id="bAddress" maxlength="120" placeholder="Cinwaanka / Adresse" autocomplete="off">
+      <input type="text" id="bPhone" maxlength="30" inputmode="tel" placeholder="Telefoon / Telefonnummer" autocomplete="off">
+    </div>
+
+    <div class="transfer-fields fields" id="bookTransfer">
+      <h2>Faahfaahinta lacagta <small>Overførsel</small></h2>
+      <input type="text" id="bRecipientName" maxlength="60" placeholder="Qofka la dirayo / Modtager (navn)" autocomplete="off">
+      <input type="text" id="bRecipientNumber" maxlength="40" placeholder="Lambarka qofka / Modtagers nummer" autocomplete="off">
+      <input type="text" id="bAmount" maxlength="20" inputmode="decimal" placeholder="Qadarka (DKK) / Beløb" autocomplete="off">
+    </div>
 
     <h2>Dooro waqti <small>Vælg tid</small> <span class="datechip" id="bDateLabel"></span></h2>
     <div class="slots" id="slots"></div>
@@ -188,6 +217,7 @@
       <div class="ticket-nr" style="font-size:60px" id="cbTime">10:15</div>
       <div class="booking-date" id="cbDate"></div>
       <div class="ticket-name" id="cbName" style="margin-top:10px"></div>
+      <div class="ticket-detail" id="cbDetail"></div>
       <div class="ahead" style="background:#dcfce7">
         <div style="color:var(--green);font-weight:800;font-size:16px">
           Ballantaada waa la xaqiijiyay<br>Din tid er booket &check;
@@ -219,29 +249,71 @@
     });
   }
 
+  var TRANSFER=['MoneyGram','Ria','Western Union'];
+  function isTransfer(s){ return TRANSFER.indexOf(s)!==-1; }
+
   // ---- Service-valg (begge steder) ----
   $('services').addEventListener('click', function(e){
     var b=e.target.closest('.service-btn'); if(!b) return;
     selectedService=b.getAttribute('data-service');
     $('services').querySelectorAll('.service-btn').forEach(function(x){x.classList.remove('selected')});
     b.classList.add('selected'); $('err').textContent='';
+    $('takeTransfer').classList.toggle('show', isTransfer(selectedService));
   });
   $('bServices').addEventListener('click', function(e){
     var b=e.target.closest('.service-btn'); if(!b) return;
     bSelectedService=b.getAttribute('data-service');
     $('bServices').querySelectorAll('.service-btn').forEach(function(x){x.classList.remove('selected')});
     b.classList.add('selected'); $('bErr').textContent='';
+    $('bookTransfer').classList.toggle('show', isTransfer(bSelectedService));
   });
+
+  // Fælles: byg kunde-felter + valider
+  function gatherFields(booking){
+    var id = booking
+      ? {a:'bAddress',p:'bPhone',rn:'bRecipientName',rnum:'bRecipientNumber',am:'bAmount'}
+      : {a:'address',p:'phone',rn:'recipientName',rnum:'recipientNumber',am:'amount'};
+    return {
+      address:$(id.a).value.trim(),
+      phone:$(id.p).value.trim(),
+      recipientName:$(id.rn).value.trim(),
+      recipientNumber:$(id.rnum).value.trim(),
+      amount:$(id.am).value.trim()
+    };
+  }
+  function validate(service, name, f){
+    if(!name) return 'Qor magacaaga / Skriv dit navn';
+    if(!f.address) return 'Qor cinwaanka / Skriv adresse';
+    if(!f.phone) return 'Qor telefoon / Skriv telefonnummer';
+    if(isTransfer(service)){
+      if(!f.recipientName) return 'Qor qofka la dirayo / Skriv modtager';
+      if(!f.recipientNumber) return 'Qor lambarka qofka / Skriv modtagers nummer';
+      if(!f.amount) return 'Qor qadarka / Skriv beløb';
+    }
+    return null;
+  }
+  function detailText(d){
+    if(!d) return '';
+    if(d.amount || d.recipientName){
+      var parts=[];
+      if(d.amount) parts.push(d.amount+' DKK');
+      if(d.recipientName) parts.push('→ '+d.recipientName+(d.recipientNumber?' ('+d.recipientNumber+')':''));
+      return parts.join('  ');
+    }
+    return '';
+  }
 
   // ---- Tag nummer ----
   $('takeBtn').addEventListener('click', function(){
     $('err').textContent='';
     if(!selectedService){ $('err').textContent='Dooro adeeg / Vælg en service'; return; }
     var name=$('name').value.trim();
-    if(!name){ $('err').textContent='Qor magacaaga / Skriv dit navn'; return; }
+    var f=gatherFields(false);
+    var v=validate(selectedService,name,f);
+    if(v){ $('err').textContent=v; return; }
     $('takeBtn').disabled=true;
     fetch('/api/take',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({service:selectedService,name:name})})
+      body:JSON.stringify({service:selectedService,name:name,address:f.address,phone:f.phone,recipientName:f.recipientName,recipientNumber:f.recipientNumber,amount:f.amount})})
       .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
       .then(function(res){
         $('takeBtn').disabled=false;
@@ -257,7 +329,9 @@
 
   $('newBtn').addEventListener('click', function(){
     localStorage.removeItem('bahaya_ticket_id'); myTicketId=null;
-    selectedService=null; $('name').value='';
+    selectedService=null;
+    ['name','address','phone','recipientName','recipientNumber','amount'].forEach(function(i){$(i).value='';});
+    $('takeTransfer').classList.remove('show');
     $('services').querySelectorAll('.service-btn').forEach(function(x){x.classList.remove('selected')});
     decideView();
   });
@@ -265,6 +339,7 @@
   function showTicket(d){
     showView('ticketView');
     $('tService').textContent=d.service; $('tNumber').textContent=d.number; $('tName').textContent=d.name;
+    $('tDetail').textContent=detailText(d);
     updateTicketStatus(d);
   }
   function updateTicketStatus(d){
@@ -301,11 +376,13 @@
     $('bErr').textContent='';
     if(!bSelectedService){ $('bErr').textContent='Dooro adeeg / Vælg en service'; return; }
     var name=$('bName').value.trim();
-    if(!name){ $('bErr').textContent='Qor magacaaga / Skriv dit navn'; return; }
+    var f=gatherFields(true);
+    var v=validate(bSelectedService,name,f);
+    if(v){ $('bErr').textContent=v; return; }
     if(!bSelectedSlot){ $('bErr').textContent='Dooro waqti / Vælg en tid'; return; }
     $('bookBtn').disabled=true;
     fetch('/api/book',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({service:bSelectedService,name:name,time:bSelectedSlot})})
+      body:JSON.stringify({service:bSelectedService,name:name,time:bSelectedSlot,address:f.address,phone:f.phone,recipientName:f.recipientName,recipientNumber:f.recipientNumber,amount:f.amount})})
       .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
       .then(function(res){
         $('bookBtn').disabled=false;
@@ -322,7 +399,9 @@
 
   $('cancelBookBtn').addEventListener('click', function(){
     localStorage.removeItem('bahaya_booking_id'); myBookingId=null;
-    bSelectedService=null; bSelectedSlot=null; $('bName').value='';
+    bSelectedService=null; bSelectedSlot=null;
+    ['bName','bAddress','bPhone','bRecipientName','bRecipientNumber','bAmount'].forEach(function(i){$(i).value='';});
+    $('bookTransfer').classList.remove('show');
     $('bServices').querySelectorAll('.service-btn').forEach(function(x){x.classList.remove('selected')});
     decideView();
   });
@@ -332,6 +411,7 @@
     $('cbService').textContent=b.service;
     $('cbTime').textContent=b.time;
     $('cbName').textContent=b.name;
+    $('cbDetail').textContent=detailText(b);
     $('cbDate').textContent=labelText(label);
   }
 

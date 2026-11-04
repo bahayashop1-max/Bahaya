@@ -155,6 +155,33 @@ function makeId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 
+// Services der kræver modtager + beløb (pengeoverførsel)
+const TRANSFER_SERVICES = ['MoneyGram', 'Ria', 'Western Union'];
+
+// Læs kundens ekstra oplysninger fra body (adresse, telefon, modtager, beløb)
+function readCustomerFields(body) {
+  return {
+    address: (body.address || '').trim().slice(0, 120),
+    phone: (body.phone || '').trim().slice(0, 30),
+    recipientName: (body.recipientName || '').trim().slice(0, 60),
+    recipientNumber: (body.recipientNumber || '').trim().slice(0, 40),
+    amount: (body.amount == null ? '' : String(body.amount)).trim().slice(0, 20)
+  };
+}
+
+// Valider påkrævede felter. Returnerer fejlkode eller null.
+function validateCustomer(name, service, f) {
+  if (!name) return 'missing_name';
+  if (!f.address) return 'missing_address';
+  if (!f.phone) return 'missing_phone';
+  if (TRANSFER_SERVICES.indexOf(service) !== -1) {
+    if (!f.recipientName) return 'missing_recipient';
+    if (!f.recipientNumber) return 'missing_recipientNumber';
+    if (!f.amount) return 'missing_amount';
+  }
+  return null;
+}
+
 // ---------------------------------------------------------------------------
 // Hjælpefunktioner til køen
 // ---------------------------------------------------------------------------
@@ -189,9 +216,10 @@ function publicState() {
     bookingDate: bDate,
     bookingLabel: dateLabel(bDate, lp),
     slots: slotAvailability(bDate),
-    bookings: state.bookings
-      .filter(function (b) { return b.date >= lp.date; })
-      .sort(function (a, b) { return (a.date + a.time).localeCompare(b.date + b.time); }),
+    // OFFENTLIG: kun ikke-følsomme felter (display + kunder må ikke se adresse/telefon/modtager/beløb)
+    bookings: sortedUpcomingBookings(lp).map(function (b) {
+      return { id: b.id, date: b.date, time: b.time, service: b.service, name: b.name };
+    }),
     tickets: state.tickets.map(t => ({
       id: t.id,
       number: t.number,
@@ -202,6 +230,30 @@ function publicState() {
       calledAt: t.calledAt
     }))
   };
+}
+
+function sortedUpcomingBookings(lp) {
+  lp = lp || localParts();
+  return state.bookings
+    .filter(function (b) { return b.date >= lp.date; })
+    .sort(function (a, b) { return (a.date + a.time).localeCompare(b.date + b.time); });
+}
+
+// ADMIN: fuld state med alle følsomme felter (kun til staff med adgangskode)
+function adminState() {
+  const lp = localParts();
+  const base = publicState();
+  base.bookings = sortedUpcomingBookings(lp);  // fulde booking-objekter
+  base.tickets = state.tickets.map(function (t) {
+    return {
+      id: t.id, number: t.number, service: t.service, name: t.name,
+      status: t.status, createdAt: t.createdAt, calledAt: t.calledAt,
+      address: t.address || '', phone: t.phone || '',
+      recipientName: t.recipientName || '', recipientNumber: t.recipientNumber || '',
+      amount: t.amount || ''
+    };
+  });
+  return base;
 }
 
 // Antal personer foran i hele køen (ventende, lavere nummer)
@@ -282,7 +334,13 @@ async function handleApi(req, res, url) {
     return sendJson(res, 200, publicState());
   }
 
-  // Status for ét bestemt nummer (kundens egen side)
+  // Admin: fuld state med alle oplysninger (kræver adgangskode)
+  if (route === '/api/admin-state' && req.method === 'GET') {
+    if (!isAdmin(req)) return sendJson(res, 401, { error: 'unauthorized' });
+    return sendJson(res, 200, adminState());
+  }
+
+  // Status for ét bestemt nummer (kundens egen side) - inkl. egne oplysninger
   if (route === '/api/ticket' && req.method === 'GET') {
     const id = url.searchParams.get('id');
     const ticket = state.tickets.find(t => t.id === id);
@@ -293,7 +351,10 @@ async function handleApi(req, res, url) {
       service: ticket.service,
       name: ticket.name,
       status: ticket.status,
-      ahead: peopleAhead(ticket)
+      ahead: peopleAhead(ticket),
+      recipientName: ticket.recipientName || '',
+      recipientNumber: ticket.recipientNumber || '',
+      amount: ticket.amount || ''
     });
   }
 
@@ -304,13 +365,20 @@ async function handleApi(req, res, url) {
     const service = (body.service || '').trim();
     const name = (body.name || '').trim().slice(0, 40);
     if (!SERVICES.includes(service)) return sendJson(res, 400, { error: 'invalid_service' });
-    if (!name) return sendJson(res, 400, { error: 'missing_name' });
+    const f = readCustomerFields(body);
+    const err = validateCustomer(name, service, f);
+    if (err) return sendJson(res, 400, { error: err });
 
     const ticket = {
       id: makeId(),
       number: state.nextNumber++,
       service,
       name,
+      address: f.address,
+      phone: f.phone,
+      recipientName: f.recipientName,
+      recipientNumber: f.recipientNumber,
+      amount: f.amount,
       status: 'waiting',
       createdAt: Date.now(),
       calledAt: null
@@ -323,7 +391,10 @@ async function handleApi(req, res, url) {
       service: ticket.service,
       name: ticket.name,
       status: ticket.status,
-      ahead: peopleAhead(ticket)
+      ahead: peopleAhead(ticket),
+      recipientName: ticket.recipientName,
+      recipientNumber: ticket.recipientNumber,
+      amount: ticket.amount
     });
   }
 
@@ -337,7 +408,9 @@ async function handleApi(req, res, url) {
     const time = (body.time || '').trim();
     const bDate = bookingDate(lp);
     if (!SERVICES.includes(service)) return sendJson(res, 400, { error: 'invalid_service' });
-    if (!name) return sendJson(res, 400, { error: 'missing_name' });
+    const f = readCustomerFields(body);
+    const err = validateCustomer(name, service, f);
+    if (err) return sendJson(res, 400, { error: err });
     if (!daySlots().includes(time)) return sendJson(res, 400, { error: 'invalid_time' });
     // Tjek at tiden ikke er fyldt
     const taken = state.bookings.filter(function (b) { return b.date === bDate && b.time === time; }).length;
@@ -349,6 +422,11 @@ async function handleApi(req, res, url) {
       time: time,
       service: service,
       name: name,
+      address: f.address,
+      phone: f.phone,
+      recipientName: f.recipientName,
+      recipientNumber: f.recipientNumber,
+      amount: f.amount,
       createdAt: Date.now()
     };
     state.bookings.push(booking);

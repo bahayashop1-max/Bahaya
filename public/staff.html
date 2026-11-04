@@ -59,6 +59,7 @@
   .nr small{font-size:14px;color:var(--muted);display:block;font-weight:600}
   .info{flex:1;min-width:0}
   .name{font-size:19px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row-detail{color:var(--muted);font-size:12px;margin-top:5px;line-height:1.5;word-break:break-word}
   .svc{color:var(--muted);font-size:14px;display:flex;align-items:center;gap:6px;margin-top:2px}
   .sdot{width:10px;height:10px;border-radius:50%}
   .sdot.MoneyGram{background:#f97316}.sdot.Ria{background:#a855f7}.sdot.Western{background:#facc15}.sdot.Bahaya{background:#14b8a6}
@@ -325,7 +326,8 @@
       return '<div class="row'+(called?' called':'')+'">'+
         '<div class="nr"><small>NR</small>'+t.number+'</div>'+
         '<div class="info"><div class="name">'+esc(t.name)+'</div>'+
-          '<div class="svc"><span class="sdot '+sdotClass(t.service)+'"></span>'+esc(t.service)+'</div></div>'+
+          '<div class="svc"><span class="sdot '+sdotClass(t.service)+'"></span>'+esc(t.service)+'</div>'+
+          staffDetail(t)+'</div>'+
         '<div class="actions">'+
           (called
             ? '<span class="called-badge">Kaldt ind &check;</span><button class="done" onclick="markDone(\''+t.id+'\')">Færdig</button>'
@@ -337,6 +339,16 @@
 
   function esc(s){return String(s).replace(/[&<>"']/g,function(c){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+  // Følsomme detaljer (kun staff ser disse)
+  function staffDetail(t){
+    var parts=[];
+    if(t.phone) parts.push('📞 '+esc(t.phone));
+    if(t.amount) parts.push('💰 '+esc(t.amount)+' DKK');
+    if(t.recipientName) parts.push('→ '+esc(t.recipientName)+(t.recipientNumber?' ('+esc(t.recipientNumber)+')':''));
+    if(t.address) parts.push('🏠 '+esc(t.address));
+    return parts.length ? '<div class="row-detail">'+parts.join(' &middot; ')+'</div>' : '';
+  }
 
   function setMode(mode, confirmMsg){
     if(confirmMsg && !confirm(confirmMsg)) return;
@@ -425,7 +437,8 @@
       html += '<div class="bk-row">'+
         '<div class="bk-time">'+x.time+'</div>'+
         '<div class="bk-info"><div class="bk-name">'+esc(x.name)+'</div>'+
-          '<div class="bk-svc"><span class="sdot '+sdotClass(x.service)+'"></span>'+esc(x.service)+'</div></div>'+
+          '<div class="bk-svc"><span class="sdot '+sdotClass(x.service)+'"></span>'+esc(x.service)+'</div>'+
+          staffDetail(x)+'</div>'+
         '<button class="bk-remove" onclick="removeBooking(\''+x.id+'\')">Fjern</button>'+
       '</div>';
     });
@@ -439,14 +452,17 @@
   }
 
   function load(){
-    return fetch('/api/state').then(function(r){return r.json();}).then(function(d){
-      document.getElementById('live').classList.remove('off');
-      document.getElementById('liveText').textContent='Forbundet';
-      lastData=d; render(); renderBookings(); renderShop(); renderStaffStatus();
-    }).catch(function(){
-      document.getElementById('live').classList.add('off');
-      document.getElementById('liveText').textContent='Ingen forbindelse';
-    });
+    return fetch('/api/admin-state',{headers:adminHeaders()})
+      .then(checkAuth)
+      .then(function(r){return r.json();})
+      .then(function(d){
+        document.getElementById('live').classList.remove('off');
+        document.getElementById('liveText').textContent='Forbundet';
+        lastData=d; render(); renderBookings(); renderShop(); renderStaffStatus();
+      }).catch(function(){
+        document.getElementById('live').classList.add('off');
+        document.getElementById('liveText').textContent='Ingen forbindelse';
+      });
   }
 
   // Start: vis login hvis ingen noegle er gemt, ellers gaa direkte ind
