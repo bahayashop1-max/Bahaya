@@ -167,8 +167,8 @@ function readCustomerFields(body) {
     recipientNumber: (body.recipientNumber || '').trim().slice(0, 40),
   amount: (body.amount == null ? '' : String(body.amount)).trim().slice(0, 20),
 idType: String(body.idType || '').trim().slice(0, 30),
-currency: String(body.currency || 'DKK').trim().toUpperCase()  amount: (body.amount == null ? '' : String(body.amount)).trim().slice(0, 20)
-  };
+currency: String(body.currency || 'DKK').trim().toUpperCase(),
+ };
 }
 
 // Valider påkrævede felter. Returnerer fejlkode eller null.
