@@ -141,7 +141,18 @@
     </div>
 
     <div class="transfer-fields fields" id="takeTransfer">
-      <h2>Faahfaahinta lacagta <small>Overførsel</small></h2>
+     
+<h2>Aqoonsigaaga <small>Legitimation</small></h2>
+<input type="date" id="dob" aria-label="Taariikhda dhalashada / Fødselsdato">
+<select id="idType">
+  <option value="">Dooro aqoonsiga / Vælg ID-type</option>
+  <option value="passport">Passport / Pas</option>
+  <option value="driving_license">Kørekort</option>
+  <option value="residence_permit">Opholdskort</option>
+  <option value="id_card">ID-kort</option>
+</select>
+<input type="text" id="idNumber" maxlength="50" placeholder="Lambarka aqoonsiga / ID-nummer">
+   <h2>Faahfaahinta lacagta <small>Overførsel</small></h2>
       <input type="text" id="recipientName" maxlength="60" placeholder="Qofka la dirayo / Modtager (navn)" autocomplete="off">
       <input type="text" id="recipientNumber" maxlength="40" placeholder="Lambarka qofka / Modtagers nummer" autocomplete="off">
       <input type="text" id="amount" maxlength="20" inputmode="decimal" placeholder="Qadarka (DKK) / Beløb" autocomplete="off">
