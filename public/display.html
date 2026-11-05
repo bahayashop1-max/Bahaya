@@ -108,7 +108,21 @@
     document.getElementById('nr').textContent = c.number;
     document.getElementById('cname').textContent = c.name || '';
     document.getElementById('cservice').textContent = c.service || '';
-  }
+} 
+ 
+  function speakCalled(c) {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+
+  var msg = new SpeechSynthesisUtterance(
+    'Nummer ' + c.number + ', ' + (c.name || '') +
+    ', kom venligst frem.'
+  );
+  msg.lang = 'da-DK';
+  msg.rate = 0.85;
+  msg.volume = 1;
+  window.speechSynthesis.speak(msg);
+}}
   function showIdle(){
     idle.style.display='block';
     callbox.style.display='none';
@@ -177,6 +191,7 @@
         showCalled(d.lastCalled);
         if(d.lastCalled.seq !== lastSeq){
           if(lastSeq !== -1) animate();
+          if(lastSeq !== -1) speakCalled(d.lastCalled);
           lastSeq = d.lastCalled.seq;
         }
       } else {
