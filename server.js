@@ -165,7 +165,9 @@ function readCustomerFields(body) {
     phone: (body.phone || '').trim().slice(0, 30),
     recipientName: (body.recipientName || '').trim().slice(0, 60),
     recipientNumber: (body.recipientNumber || '').trim().slice(0, 40),
-    amount: (body.amount == null ? '' : String(body.amount)).trim().slice(0, 20)
+  amount: (body.amount == null ? '' : String(body.amount)).trim().slice(0, 20),
+idType: String(body.idType || '').trim().slice(0, 30),
+currency: String(body.currency || 'DKK').trim().toUpperCase()  amount: (body.amount == null ? '' : String(body.amount)).trim().slice(0, 20)
   };
 }
 
@@ -175,6 +177,10 @@ function validateCustomer(name, service, f) {
   if (!f.address) return 'missing_address';
   if (!f.phone) return 'missing_phone';
   if (TRANSFER_SERVICES.indexOf(service) !== -1) {
+   if (!['Pas', 'Kørekort', 'Opholdskort'].includes(f.idType))
+  return 'missing_idType';
+if (!['DKK', 'USD'].includes(f.currency))
+  return 'invalid_currency';
     if (!f.recipientName) return 'missing_recipient';
     if (!f.recipientNumber) return 'missing_recipientNumber';
     if (!f.amount) return 'missing_amount';
@@ -379,6 +385,9 @@ async function handleApi(req, res, url) {
       recipientName: f.recipientName,
       recipientNumber: f.recipientNumber,
       amount: f.amount,
+      idType: f.idType,
+currency: f.currency,
+      
       status: 'waiting',
       createdAt: Date.now(),
       calledAt: null
@@ -394,7 +403,9 @@ async function handleApi(req, res, url) {
       ahead: peopleAhead(ticket),
       recipientName: ticket.recipientName,
       recipientNumber: ticket.recipientNumber,
-      amount: ticket.amount
+      amount: ticket.amount,
+idType: ticket.idType,
+currency: ticket.currency
     });
   }
 
