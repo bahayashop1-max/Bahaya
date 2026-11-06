@@ -324,7 +324,7 @@
     if(v){ $('err').textContent=v; return; }
     $('takeBtn').disabled=true;
     fetch('/api/take',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({service:selectedService,name:name,address:f.address,phone:f.phone,recipientName:f.recipientName,recipientNumber:f.recipientNumber,amount:f.amount})})
+      body:JSON.stringify({service:selectedService,name:name,address:f.address,phone:f.phone,recipientName:f.recipientName,recipientNumber:f.recipientNumber,amount:f.amount,idType:f.idType})})
       .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
       .then(function(res){
         $('takeBtn').disabled=false;
