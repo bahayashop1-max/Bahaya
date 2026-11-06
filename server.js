@@ -1,4 +1,4 @@
-Z/*
+/*
  * Bahaya Shop - Digitalt Køsystem
  * ----------------------------------
  * Simpel, robust HTTP-server uden eksterne pakker (kun Node.js indbygget).
