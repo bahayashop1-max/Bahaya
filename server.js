@@ -24,12 +24,12 @@ const STATE_FILE = path.join(DATA_DIR, 'state.json');
 
 const SERVICES = ['MoneyGram', 'Ria', 'Western Union', 'Bahaya Shop'];
 
-// Admin-adgangskode. Saettes som miljoevariabel ADMIN_PASSWORD paa Railway.
+// Admin-adgangskode. Saettes som miljoevariabel ADMIN_passportSWORD paa Railway.
 // (Standardvaerdien her bruges kun hvis variablen ikke er sat.)
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'skift-mig';
+const ADMIN_passportSWORD = process.env.ADMIN_passportSWORD || 'skift-mig';
 
 function isAdmin(req) {
-  return req.headers['x-admin-key'] === ADMIN_PASSWORD;
+  return req.headers['x-admin-key'] === ADMIN_passportSWORD;
 }
 
 // --- Åbningstider (dansk tid) ---
@@ -96,8 +96,8 @@ function slotAvailability(date) {
   });
 }
 
-// Fjern bookinger fra dage der er passeret
-function prunePastBookings(lp) {
+// Fjern bookinger fra dage der er passportseret
+function prunepassporttBookings(lp) {
   lp = lp || localParts();
   const before = state.bookings.length;
   state.bookings = state.bookings.filter(function (b) { return b.date >= lp.date; });
@@ -177,7 +177,7 @@ function validateCustomer(name, service, f) {
   if (!f.address) return 'missing_address';
   if (!f.phone) return 'missing_phone';
   if (TRANSFER_SERVICES.indexOf(service) !== -1) {
-   if (!['Pas', 'Kørekort', 'Opholdskort'].includes(f.idType))
+  if (!['passport', 'driving_license', 'residence_permit', 'id_card'].includes(f.idType))
   return 'missing_idType';
 if (!['DKK', 'USD'].includes(f.currency))
   return 'invalid_currency';
@@ -331,8 +331,8 @@ async function handleApi(req, res, url) {
   // Admin-login (staff-siden tjekker adgangskoden her)
   if (route === '/api/login' && req.method === 'POST') {
     const body = await readBody(req);
-    if ((body.password || '') === ADMIN_PASSWORD) return sendJson(res, 200, { ok: true });
-    return sendJson(res, 401, { error: 'wrong_password' });
+    if ((body.passportsword || '') === ADMIN_passportSWORD) return sendJson(res, 200, { ok: true });
+    return sendJson(res, 401, { error: 'wrong_passportsword' });
   }
 
   // Fælles state (kunde, staff, display bruger denne)
@@ -412,7 +412,7 @@ currency: ticket.currency
   // Kunden booker en tid til næste åbningsdag
   if (route === '/api/book' && req.method === 'POST') {
     const lp = localParts();
-    prunePastBookings(lp);
+    prunepassporttBookings(lp);
     const body = await readBody(req);
     const service = (body.service || '').trim();
     const name = (body.name || '').trim().slice(0, 40);
