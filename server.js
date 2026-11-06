@@ -26,8 +26,7 @@ const SERVICES = ['MoneyGram', 'Ria', 'Western Union', 'Bahaya Shop'];
 
 // Admin-adgangskode. Saettes som miljoevariabel ADMIN_passportSWORD paa Railway.
 // (Standardvaerdien her bruges kun hvis variablen ikke er sat.)
-const ADMIN_passportSWORD = process.env.ADMIN_passportSWORD || 'skift-mig';
-
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'skift-mig';
 function isAdmin(req) {
   return req.headers['x-admin-key'] === ADMIN_passportSWORD;
 }
