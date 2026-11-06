@@ -289,7 +289,8 @@
       phone:$(id.p).value.trim(),
       recipientName:$(id.rn).value.trim(),
       recipientNumber:$(id.rnum).value.trim(),
-      amount:$(id.am).value.trim()
+    amount:$(id.am).value.trim(),
+idType: booking ? '' : $('idType').value
     };
   }
   function validate(service, name, f){
