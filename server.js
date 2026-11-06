@@ -1,4 +1,4 @@
-/*
+Z/*
  * Bahaya Shop - Digitalt Køsystem
  * ----------------------------------
  * Simpel, robust HTTP-server uden eksterne pakker (kun Node.js indbygget).
@@ -28,7 +28,7 @@ const SERVICES = ['MoneyGram', 'Ria', 'Western Union', 'Bahaya Shop'];
 // (Standardvaerdien her bruges kun hvis variablen ikke er sat.)
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'skift-mig';
 function isAdmin(req) {
-  return req.headers['x-admin-key'] === ADMIN_passportSWORD;
+return req.headers['x-admin-key'] === ADMIN_PASSWORD;
 }
 
 // --- Åbningstider (dansk tid) ---
