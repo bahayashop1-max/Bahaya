@@ -330,7 +330,7 @@ async function handleApi(req, res, url) {
   // Admin-login (staff-siden tjekker adgangskoden her)
   if (route === '/api/login' && req.method === 'POST') {
     const body = await readBody(req);
-    if ((body.passportsword || '') === process.env.ADMIN_PASSWORD) return sendJson(res, 200, { ok: true });
+    if ((body.password || '') === process.env.ADMIN_PASSWORD) return sendJson(res, 200, { ok: true });
     return sendJson(res, 401, { error: 'wrong_passportsword' });
   }
 
