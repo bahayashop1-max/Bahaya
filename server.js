@@ -386,7 +386,7 @@ async function handleApi(req, res, url) {
       amount: f.amount,
       idType: f.idType,
 currency: f.currency,
-      
+source: body.source === 'PC' ? 'PC' : 'Online',      
       status: 'waiting',
       createdAt: Date.now(),
       calledAt: null
