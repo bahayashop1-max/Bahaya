@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bahaya Shop - Staff</title>
+<style>
+  :root{
+    --bg:#0f172a;--card:#1e293b;--line:#334155;--text:#f1f5f9;--muted:#94a3b8;
+    --green:#22c55e;--brand:#0ea5e9;--red:#ef4444;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    background:var(--bg);color:var(--text);padding:16px}
+  .wrap{max-width:900px;margin:0 auto}
+  header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+  .logo{font-size:24px;font-weight:800}
+  .logo span{color:var(--brand)}
+  .live{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}
+  .dotlive{width:9px;height:9px;border-radius:50%;background:var(--green)}
+  .dotlive.off{background:var(--red)}
+
+  .shopbar{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .shopstatus{flex:1;font-weight:800;font-size:16px;padding:12px 16px;border-radius:12px;
+    background:var(--card);border:2px solid var(--line)}
+  .shopstatus.open{color:var(--green);border-color:#14532d;background:#052e1a}
+  .shopstatus.closed{color:#fca5a5;border-color:#7f1d1d;background:#3b0a0a}
+  .shoptoggle{padding:12px 16px;border-radius:12px;border:2px solid var(--line);background:transparent;
+    color:var(--text);font-weight:800;cursor:pointer;font-size:15px;white-space:nowrap}
+  .shoptoggle.reopen{border-color:var(--green);color:var(--green)}
+  .autobtn{width:100%;margin:-4px 0 12px;padding:10px;border-radius:10px;border:1px dashed var(--line);
+    background:transparent;color:var(--muted);font-weight:700;cursor:pointer;font-size:13px}
+
+  .ssbar{display:flex;gap:8px;margin-bottom:14px}
+  .ss-btn{flex:1;padding:13px 8px;border-radius:12px;border:2px solid var(--line);background:var(--card);
+    color:var(--text);font-weight:800;cursor:pointer;font-size:15px}
+  .ss-btn.active{border-color:#fbbf24;background:#3b2f0b;color:#fbbf24}
+  .ss-btn.back{border-color:var(--green);color:var(--green)}
+
+  .callnext{width:100%;padding:18px;border:none;border-radius:16px;background:var(--green);
+    color:#062b12;font-size:20px;font-weight:800;cursor:pointer;margin-bottom:14px;
+    display:flex;align-items:center;justify-content:center;gap:12px}
+  .callnext:active{transform:scale(.99)}
+  .callnext:disabled{opacity:.45;cursor:default}
+  .callnext .key{font-size:12px;font-weight:700;background:rgba(0,0,0,.25);color:#062b12;
+    padding:4px 10px;border-radius:8px;letter-spacing:1px}
+
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .filter{padding:10px 16px;border-radius:12px;border:2px solid var(--line);background:var(--card);
+    color:var(--text);font-weight:700;cursor:pointer;font-size:15px}
+  .filter.active{border-color:var(--brand);background:#0b3a54}
+  .filter .count{color:var(--muted);font-weight:600;margin-left:6px}
+
+  .list{display:grid;gap:10px}
+  .row{display:flex;align-items:center;gap:14px;background:var(--card);border:2px solid var(--line);
+    border-radius:14px;padding:14px 16px}
+  .row.called{border-color:var(--green);opacity:.75}
+  .nr{font-size:30px;font-weight:900;min-width:70px}
+  .nr small{font-size:14px;color:var(--muted);display:block;font-weight:600}
+  .info{flex:1;min-width:0}
+  .name{font-size:19px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .source-tag{display:inline-block;margin-top:5px;padding:3px 9px;border-radius:8px;font-size:12px;font-weight:800;background:#0b3a54;color:#7dd3fc}
+  .source-tag.shop{background:#164e2b;color:#86efac}
+  .row-detail{color:var(--muted);font-size:12px;margin-top:5px;line-height:1.5;word-break:break-word}
+  .svc{color:var(--muted);font-size:14px;display:flex;align-items:center;gap:6px;margin-top:2px}
+  .sdot{width:10px;height:10px;border-radius:50%}
+  .sdot.MoneyGram{background:#f97316}.sdot.Ria{background:#a855f7}.sdot.Western{background:#facc15}.sdot.Bahaya{background:#14b8a6}
+  .actions{display:flex;gap:8px}
+  .call{padding:12px 18px;border:none;border-radius:12px;background:var(--green);color:#062b12;
+    font-weight:800;font-size:16px;cursor:pointer;white-space:nowrap}
+  .call:active{transform:scale(.97)}
+  .done{padding:12px 14px;border:2px solid var(--line);border-radius:12px;background:transparent;
+    color:var(--muted);font-weight:700;cursor:pointer}
+  .called-badge{color:var(--green);font-weight:700;font-size:14px;padding:0 8px}
+
+  .empty{text-align:center;color:var(--muted);padding:50px 10px;font-size:16px}
+
+  /* Login-skaerm */
+  .lock{position:fixed;inset:0;background:#0b1220;display:flex;align-items:center;
+    justify-content:center;padding:20px;z-index:50}
+  .lock.hide{display:none}
+  .lockbox{width:100%;max-width:360px;background:var(--card);border:2px solid var(--line);
+    border-radius:20px;padding:30px 24px;text-align:center}
+  .lockbox .logo{font-size:26px;margin-bottom:6px}
+  .lockbox p{color:var(--muted);margin:0 0 20px;font-size:14px}
+  .lockbox input{width:100%;padding:16px;border-radius:14px;border:2px solid var(--line);
+    background:#0f172a;color:var(--text);font-size:18px;text-align:center;margin-bottom:12px}
+  .lockbox input:focus{outline:none;border-color:var(--brand)}
+  .lockbox button{width:100%;padding:16px;border:none;border-radius:14px;background:var(--brand);
+    color:#04222f;font-size:18px;font-weight:800;cursor:pointer}
+  .lockerr{color:#fca5a5;min-height:20px;margin-top:10px;font-size:14px}
+  .logout{background:transparent;border:2px solid var(--line);color:var(--muted);
+    border-radius:10px;padding:8px 12px;font-weight:700;cursor:pointer;font-size:13px}
+  .bookings{margin-top:28px}
+  .bk-head{font-size:18px;margin:0 0 12px}
+  .bk-count{background:var(--brand);color:#04222f;border-radius:20px;padding:2px 10px;font-size:14px;margin-left:6px}
+  .bk-date{color:var(--muted);font-size:13px;font-weight:700;margin:14px 0 8px;text-transform:uppercase;letter-spacing:.5px}
+  .bk-row{display:flex;align-items:center;gap:14px;background:var(--card);border:2px solid var(--line);
+    border-radius:12px;padding:12px 14px;margin-bottom:8px}
+  .bk-time{font-size:22px;font-weight:900;min-width:64px;color:var(--brand)}
+  .bk-info{flex:1;min-width:0}
+  .bk-name{font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bk-svc{color:var(--muted);font-size:13px;display:flex;align-items:center;gap:6px;margin-top:2px}
+  .bk-remove{padding:10px 12px;border:2px solid var(--line);border-radius:10px;background:transparent;
+    color:var(--muted);font-weight:700;cursor:pointer;font-size:13px}
+
+  .reset{margin-top:22px;text-align:center}
+  .reset button{padding:12px 22px;border:2px solid var(--red);border-radius:12px;background:transparent;
+    color:var(--red);font-weight:700;cursor:pointer;font-size:15px}
+</style>
+</head>
+<body>
+<!-- LOGIN -->
+<div class="lock" id="lock">
+  <div class="lockbox">
+    <div class="logo">BAHAYA <span style="color:var(--brand)">SHOP</span></div>
+    <p>Furaha / Kun for personalet</p>
+    <input type="password" id="pw" placeholder="Adgangskode / Furaha" autocomplete="current-password">
+    <button id="loginBtn">Gal / Log ind</button>
+    <div class="lockerr" id="lockerr"></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <header>
+    <div class="logo">BAHAYA <span>SHOP</span> &middot; Staff</div>
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="live"><span class="dotlive" id="live"></span><span id="liveText">Forbundet</span></div>
+      <button class="logout" id="logoutBtn">Log ud</button>
+    </div>
+  </header>
+
+  <div class="shopbar">
+    <div class="shopstatus" id="shopStatus">—</div>
+    <button class="shoptoggle" id="shopToggle">—</button>
+  </div>
+  <button class="autobtn" id="autoBtn" style="display:none">↺ Automatisk efter åbningstid</button>
+
+  <div class="ssbar">
+    <button class="ss-btn" id="ssPause">🍽️ Pause</button>
+    <button class="ss-btn" id="ssSalah">🕌 Salah / Bøn</button>
+    <button class="ss-btn back" id="ssBack" style="display:none">✓ Tilbage / Fortsæt</button>
+  </div>
+
+  <button class="callnext" id="callNextBtn">
+    U yeer kan xiga / Kald næste ind
+    <span class="key">MELLEMRUM</span>
+  </button>
+
+  <div class="filters" id="filters">
+    <button class="filter active" data-f="all">Alle <span class="count" id="c-all">0</span></button>
+    <button class="filter" data-f="MoneyGram">MoneyGram <span class="count" id="c-MoneyGram">0</span></button>
+    <button class="filter" data-f="Ria">Ria <span class="count" id="c-Ria">0</span></button>
+    <button class="filter" data-f="Western Union">Western Union <span class="count" id="c-Western Union">0</span></button>
+    <button class="filter" data-f="Bahaya Shop">Bahaya Shop <span class="count" id="c-Bahaya Shop">0</span></button>
+  </div>
+
+  <div class="list" id="list"></div>
+  <div class="empty" id="empty" style="display:none">Ingen i kø / Saf ma jiro</div>
+
+  <div class="bookings" id="bookingsSection" style="display:none">
+    <h3 class="bk-head">Ballamaha / Bookede tider <span class="bk-count" id="bkCount">0</span></h3>
+    <div id="bookingsList"></div>
+  </div>
+
+  <div class="reset">
+    <button id="resetBtn">Reset Numbers / Nulstil køen</button>
+  </div>
+</div>
+
+<script>
+  var filter = 'all';
+  var lastData = null;
+  var ADMIN_KEY = localStorage.getItem('bahaya_admin_key') || '';
+  var pollTimer = null;
+
+  // ---- Login ----
+  function adminHeaders(){
+    return {'Content-Type':'application/json','x-admin-key':ADMIN_KEY};
+  }
+  function showLogin(){
+    document.getElementById('lock').classList.remove('hide');
+    if(pollTimer){ clearInterval(pollTimer); pollTimer=null; }
+  }
+  function hideLogin(){
+    document.getElementById('lock').classList.add('hide');
+    load();
+    if(!pollTimer) pollTimer = setInterval(load, 1500);
+  }
+  function doLogin(){
+    var pw = document.getElementById('pw').value;
+    var errEl = document.getElementById('lockerr');
+    errEl.textContent = '';
+    fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({password:pw})})
+      .then(function(r){ return r.json().then(function(d){return {ok:r.ok,d:d};}); })
+      .then(function(res){
+        if(res.ok){
+          ADMIN_KEY = pw;
+          localStorage.setItem('bahaya_admin_key', pw);
+          document.getElementById('pw').value='';
+          hideLogin();
+        } else {
+          errEl.textContent = 'Forkert adgangskode / Furaha khaldan';
+        }
+      })
+      .catch(function(){ errEl.textContent = 'Ingen forbindelse'; });
+  }
+  document.getElementById('loginBtn').addEventListener('click', doLogin);
+  document.getElementById('pw').addEventListener('keydown', function(e){
+    if(e.key==='Enter') doLogin();
+  });
+  document.getElementById('logoutBtn').addEventListener('click', function(){
+    ADMIN_KEY=''; localStorage.removeItem('bahaya_admin_key');
+    document.getElementById('pw').value=''; showLogin();
+  });
+
+  // Hvis en admin-handling afvises (fx forkert/udloebet noegle) -> vis login igen
+  function checkAuth(r){
+    if(r.status===401){ ADMIN_KEY=''; localStorage.removeItem('bahaya_admin_key'); showLogin(); throw new Error('unauth'); }
+    return r;
+  }
+
+  document.getElementById('filters').addEventListener('click', function(e){
+    var b = e.target.closest('.filter');
+    if(!b) return;
+    filter = b.getAttribute('data-f');
+    document.querySelectorAll('.filter').forEach(function(x){x.classList.remove('active')});
+    b.classList.add('active');
+    render();
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', function(){
+    if(!confirm('Nulstil hele køen? Alle numre slettes.')) return;
+    fetch('/api/reset',{method:'POST',headers:adminHeaders()}).then(checkAuth).then(load).catch(function(){});
+  });
+
+  function callIn(id){
+    fetch('/api/call',{method:'POST',headers:adminHeaders(),
+      body:JSON.stringify({id:id})}).then(checkAuth).then(load).catch(function(){});
+  }
+  function markDone(id){
+    fetch('/api/done',{method:'POST',headers:adminHeaders(),
+      body:JSON.stringify({id:id})}).then(checkAuth).then(load).catch(function(){});
+  }
+
+  // Kald den naeste ventende kunde i det valgte filter
+  function callNext(){
+    if(!lastData) return;
+    var waiting = lastData.tickets.filter(function(t){
+      return t.status==='waiting' && (filter==='all' || t.service===filter);
+    });
+    if(waiting.length===0){ buzz(); return; }
+    waiting.sort(function(a,b){return a.number-b.number;});
+    ding();
+    callIn(waiting[0].id);
+  }
+
+  document.getElementById('callNextBtn').addEventListener('click', callNext);
+
+  // MELLEMRUM (space) kalder naeste ind
+  document.addEventListener('keydown', function(e){
+    if(e.code === 'Space' || e.key === ' '){
+      var tag = (e.target.tagName||'').toLowerCase();
+      if(tag==='input' || tag==='textarea') return;   // bland dig ikke i skrivefelter
+      e.preventDefault();
+      callNext();
+    }
+  });
+
+  // Lyd naar man kalder ind
+  function ding(){
+    try{
+      var ctx = new (window.AudioContext||window.webkitAudioContext)();
+      [880,1174].forEach(function(f,i){
+        var o=ctx.createOscillator(),g=ctx.createGain();
+        o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=f;
+        var t=ctx.currentTime+i*0.12;
+        g.gain.setValueAtTime(0.001,t);
+        g.gain.exponentialRampToValueAtTime(0.35,t+0.03);
+        g.gain.exponentialRampToValueAtTime(0.001,t+0.35);
+        o.start(t);o.stop(t+0.4);
+      });
+    }catch(e){}
+  }
+  function buzz(){ // kort lyd naar koeen er tom
+    try{
+      var ctx=new (window.AudioContext||window.webkitAudioContext)();
+      var o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);o.type='square';o.frequency.value=180;
+      g.gain.setValueAtTime(0.2,ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.25);
+      o.start();o.stop(ctx.currentTime+0.3);
+    }catch(e){}
+  }
+
+  function sdotClass(svc){
+    if(svc==='Western Union') return 'Western';
+    if(svc==='Bahaya Shop') return 'Bahaya';
+    return svc;
+  }
+
+  function render(){
+    if(!lastData) return;
+    var tickets = lastData.tickets.filter(function(t){return t.status!=='done';});
+    // tæl pr. service (kun ventende)
+    var counts={all:0,'MoneyGram':0,'Ria':0,'Western Union':0,'Bahaya Shop':0};
+    tickets.forEach(function(t){ if(t.status==='waiting'){counts.all++;counts[t.service]++;} });
+    document.getElementById('c-all').textContent=counts.all;
+    document.getElementById('c-MoneyGram').textContent=counts['MoneyGram'];
+    document.getElementById('c-Ria').textContent=counts['Ria'];
+    document.getElementById('c-Western Union').textContent=counts['Western Union'];
+    document.getElementById('c-Bahaya Shop').textContent=counts['Bahaya Shop'];
+
+    var shown = tickets.filter(function(t){return filter==='all'||t.service===filter;});
+    shown.sort(function(a,b){return a.number-b.number;});
+
+    var waitingInFilter = shown.filter(function(t){return t.status==='waiting';}).length;
+    document.getElementById('callNextBtn').disabled = waitingInFilter===0;
+
+    var list=document.getElementById('list');
+    var empty=document.getElementById('empty');
+    if(shown.length===0){ list.innerHTML=''; empty.style.display='block'; return; }
+    empty.style.display='none';
+
+    list.innerHTML = shown.map(function(t){
+      var called = t.status==='called';
+      return '<div class="row'+(called?' called':'')+'">'+
+        '<div class="nr"><small>NR</small>'+t.number+'</div>'+
+        '<div class="info"><div class="name">'+esc(t.name)+'</div>'+
+          '<div class="svc"><span class="sdot '+sdotClass(t.service)+'"></span>'+esc(t.service)+'</div>'+
+          '<div class="source-tag'+(t.source==='dukaan'?' shop':'')+'">'+
+          (t.source==='dukaan'?'Dukaanka':'Online')+'</div>'+
+          staffDetail(t)+'</div>'+
+        '<div class="actions">'+
+          (called
+            ? '<span class="called-badge">Kaldt ind &check;</span><button class="done" onclick="markDone(\''+t.id+'\')">Færdig</button>'
+            : '<button class="call" onclick="callIn(\''+t.id+'\')">U yeer / Kald ind</button>')+
+        '</div>'+
+      '</div>';
+    }).join('');
+  }
+
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+  // Følsomme detaljer (kun staff ser disse)
+  function staffDetail(t){
+    var parts=[];
+    if(t.phone) parts.push('📞 '+esc(t.phone));
+    if(t.amount) parts.push('💰 '+esc(t.amount)+' DKK');
+    if(t.recipientName) parts.push('→ '+esc(t.recipientName)+(t.recipientNumber?' ('+esc(t.recipientNumber)+')':''));
+    if(t.address) parts.push('🏠 '+esc(t.address));
+    return parts.length ? '<div class="row-detail">'+parts.join(' &middot; ')+'</div>' : '';
+  }
+
+  function setMode(mode, confirmMsg){
+    if(confirmMsg && !confirm(confirmMsg)) return;
+    fetch('/api/set-mode',{method:'POST',headers:adminHeaders(),
+      body:JSON.stringify({mode:mode})}).then(checkAuth).then(load).catch(function(){});
+  }
+
+  document.getElementById('shopToggle').addEventListener('click', function(){
+    if(!lastData) return;
+    if(lastData.open){
+      setMode('closed','Luk butikken? Kunder kan så kun booke tider.');
+    } else {
+      setMode('open');  // åbn nu (også uden for åbningstid)
+    }
+  });
+  document.getElementById('autoBtn').addEventListener('click', function(){
+    setMode('auto');
+  });
+
+  function setStaffStatus(status){
+    fetch('/api/staff-status',{method:'POST',headers:adminHeaders(),
+      body:JSON.stringify({status:status})}).then(checkAuth).then(load).catch(function(){});
+  }
+  document.getElementById('ssPause').addEventListener('click', function(){
+    setStaffStatus((lastData&&lastData.staffStatus==='pause')?'active':'pause');
+  });
+  document.getElementById('ssSalah').addEventListener('click', function(){
+    setStaffStatus((lastData&&lastData.staffStatus==='salah')?'active':'salah');
+  });
+  document.getElementById('ssBack').addEventListener('click', function(){ setStaffStatus('active'); });
+
+  function renderStaffStatus(){
+    if(!lastData) return;
+    var s=lastData.staffStatus||'active';
+    var p=document.getElementById('ssPause'), sa=document.getElementById('ssSalah'), bk=document.getElementById('ssBack');
+    p.classList.toggle('active', s==='pause');
+    sa.classList.toggle('active', s==='salah');
+    bk.style.display = (s==='active') ? 'none' : 'block';
+  }
+
+  function renderShop(){
+    if(!lastData) return;
+    var st=document.getElementById('shopStatus');
+    var tg=document.getElementById('shopToggle');
+    var auto=document.getElementById('autoBtn');
+    var ov=lastData.override || 'auto';
+    st.classList.remove('open','closed'); tg.classList.remove('reopen');
+
+    // Status-tekst
+    if(lastData.open){
+      st.textContent='ÅBEN · Furan ('+lastData.localTime+')' + (ov==='open'?' · manuelt':'');
+      st.classList.add('open');
+    } else {
+      st.textContent=(ov==='closed'?'LUKKET · Fri':'Lukket · uden for åbningstid')+' ('+lastData.localTime+')';
+      st.classList.add('closed');
+    }
+
+    // Knap: luk hvis åben, åbn hvis lukket
+    if(lastData.open){ tg.textContent='Hold fri / Luk butik'; }
+    else { tg.textContent='Åbn butik nu'; tg.classList.add('reopen'); }
+
+    // Auto-knap vises kun når admin har overstyret
+    auto.style.display = (ov==='auto') ? 'none' : 'block';
+  }
+
+  function removeBooking(id){
+    if(!confirm('Fjern denne booking?')) return;
+    fetch('/api/booking-remove',{method:'POST',headers:adminHeaders(),
+      body:JSON.stringify({id:id})}).then(checkAuth).then(load).catch(function(){});
+  }
+
+  function renderBookings(){
+    var section=document.getElementById('bookingsSection');
+    var b = (lastData && lastData.bookings) ? lastData.bookings : [];
+    if(b.length===0){ section.style.display='none'; return; }
+    section.style.display='block';
+    document.getElementById('bkCount').textContent=b.length;
+    // grupper efter dato (b er allerede sorteret dato+tid fra serveren)
+    var html='', curDate=null;
+    b.forEach(function(x){
+      if(x.date!==curDate){
+        curDate=x.date;
+        var lbl = dateHeading(x.date);
+        html += '<div class="bk-date">'+lbl+'</div>';
+      }
+      html += '<div class="bk-row">'+
+        '<div class="bk-time">'+x.time+'</div>'+
+        '<div class="bk-info"><div class="bk-name">'+esc(x.name)+'</div>'+
+          '<div class="bk-svc"><span class="sdot '+sdotClass(x.service)+'"></span>'+esc(x.service)+'</div>'+
+          staffDetail(x)+'</div>'+
+        '<button class="bk-remove" onclick="removeBooking(\''+x.id+'\')">Fjern</button>'+
+      '</div>';
+    });
+    document.getElementById('bookingsList').innerHTML=html;
+  }
+  function dateHeading(date){
+    var today = lastData ? lastData.localDate : null;
+    var pre = (date===today) ? 'I DAG &middot; ' : '';
+    var a=date.split('-');
+    return pre + a[2]+'-'+a[1]+'-'+a[0];
+  }
+
+  function load(){
+    return fetch('/api/admin-state',{headers:adminHeaders()})
+      .then(checkAuth)
+      .then(function(r){return r.json();})
+      .then(function(d){
+        document.getElementById('live').classList.remove('off');
+        document.getElementById('liveText').textContent='Forbundet';
+        lastData=d; render(); renderBookings(); renderShop(); renderStaffStatus();
+      }).catch(function(){
+        document.getElementById('live').classList.add('off');
+        document.getElementById('liveText').textContent='Ingen forbindelse';
+      });
+  }
+
+  // Start: vis login hvis ingen noegle er gemt, ellers gaa direkte ind
+  if(ADMIN_KEY){ hideLogin(); } else { showLogin(); }
+</script>
+</body>
+</html>
