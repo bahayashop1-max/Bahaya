@@ -136,26 +136,8 @@
     <h2>Macluumaadkaaga <small>Dine oplysninger</small></h2>
     <div class="fields">
       <input type="text" id="name" maxlength="40" placeholder="Magaca / Navn" autocomplete="off">
-      <input type="text" id="address" maxlength="120" placeholder="Cinwaanka / Adresse" autocomplete="off">
-      <input type="text" id="phone" maxlength="30" inputmode="tel" placeholder="Telefoon / Telefonnummer" autocomplete="off">
-    </div>
 
-    <div class="transfer-fields fields" id="takeTransfer">
-     
-<h2>Aqoonsigaaga <small>Legitimation</small></h2>
-<input type="date" id="dob" aria-label="Taariikhda dhalashada / Fødselsdato">
-<select id="idType">
-  <option value="">Dooro aqoonsiga / Vælg ID-type</option>
-  <option value="passport">Passport / Pas</option>
-  <option value="driving_license">Kørekort</option>
-  <option value="residence_permit">Opholdskort</option>
-  <option value="id_card">ID-kort</option>
-</select>
-<input type="text" id="idNumber" maxlength="50" placeholder="Lambarka aqoonsiga / ID-nummer">
-   <h2>Faahfaahinta lacagta <small>Overførsel</small></h2>
-      <input type="text" id="recipientName" maxlength="60" placeholder="Qofka la dirayo / Modtager (navn)" autocomplete="off">
-      <input type="text" id="recipientNumber" maxlength="40" placeholder="Lambarka qofka / Modtagers nummer" autocomplete="off">
-      <input type="text" id="amount" maxlength="20" inputmode="decimal" placeholder="Qadarka (DKK) / Beløb" autocomplete="off">
+      <input type="text" id="phone" maxlength="30" inputmode="tel" placeholder="Telefoon / Telefonnummer" autocomplete="off">
     </div>
 
     <button class="take" id="takeBtn">Qaado nambar / Tag et nummer</button>
@@ -203,15 +185,8 @@
     <h2>Macluumaadkaaga <small>Dine oplysninger</small></h2>
     <div class="fields">
       <input type="text" id="bName" maxlength="40" placeholder="Magaca / Navn" autocomplete="off">
-      <input type="text" id="bAddress" maxlength="120" placeholder="Cinwaanka / Adresse" autocomplete="off">
-      <input type="text" id="bPhone" maxlength="30" inputmode="tel" placeholder="Telefoon / Telefonnummer" autocomplete="off">
-    </div>
 
-    <div class="transfer-fields fields" id="bookTransfer">
-      <h2>Faahfaahinta lacagta <small>Overførsel</small></h2>
-      <input type="text" id="bRecipientName" maxlength="60" placeholder="Qofka la dirayo / Modtager (navn)" autocomplete="off">
-      <input type="text" id="bRecipientNumber" maxlength="40" placeholder="Lambarka qofka / Modtagers nummer" autocomplete="off">
-      <input type="text" id="bAmount" maxlength="20" inputmode="decimal" placeholder="Qadarka (DKK) / Beløb" autocomplete="off">
+      <input type="text" id="bPhone" maxlength="30" inputmode="tel" placeholder="Telefoon / Telefonnummer" autocomplete="off">
     </div>
 
     <h2>Dooro waqti <small>Vælg tid</small> <span class="datechip" id="bDateLabel"></span></h2>
@@ -269,39 +244,21 @@
     selectedService=b.getAttribute('data-service');
     $('services').querySelectorAll('.service-btn').forEach(function(x){x.classList.remove('selected')});
     b.classList.add('selected'); $('err').textContent='';
-    $('takeTransfer').classList.toggle('show', isTransfer(selectedService));
   });
   $('bServices').addEventListener('click', function(e){
     var b=e.target.closest('.service-btn'); if(!b) return;
     bSelectedService=b.getAttribute('data-service');
     $('bServices').querySelectorAll('.service-btn').forEach(function(x){x.classList.remove('selected')});
     b.classList.add('selected'); $('bErr').textContent='';
-    $('bookTransfer').classList.toggle('show', isTransfer(bSelectedService));
   });
 
   // Fælles: byg kunde-felter + valider
   function gatherFields(booking){
-    var id = booking
-      ? {a:'bAddress',p:'bPhone',rn:'bRecipientName',rnum:'bRecipientNumber',am:'bAmount'}
-      : {a:'address',p:'phone',rn:'recipientName',rnum:'recipientNumber',am:'amount'};
-    return {
-      address:$(id.a).value.trim(),
-      phone:$(id.p).value.trim(),
-      recipientName:$(id.rn).value.trim(),
-      recipientNumber:$(id.rnum).value.trim(),
-    amount:$(id.am).value.trim(),
-idType: booking ? '' : $('idType').value
-    };
+    return {phone:$(booking?'bPhone':'phone').value.trim()};
   }
-  function validate(service, name, f){
+  function validate(service,name,f){
     if(!name) return 'Qor magacaaga / Skriv dit navn';
-    if(!f.address) return 'Qor cinwaanka / Skriv adresse';
     if(!f.phone) return 'Qor telefoon / Skriv telefonnummer';
-    if(isTransfer(service)){
-      if(!f.recipientName) return 'Qor qofka la dirayo / Skriv modtager';
-      if(!f.recipientNumber) return 'Qor lambarka qofka / Skriv modtagers nummer';
-      if(!f.amount) return 'Qor qadarka / Skriv beløb';
-    }
     return null;
   }
   function detailText(d){
@@ -325,17 +282,7 @@ idType: booking ? '' : $('idType').value
     if(v){ $('err').textContent=v; return; }
     $('takeBtn').disabled=true;
     fetch('/api/take',{method:'POST',headers:{'Content-Type':'application/json'},
-     body:JSON.stringify({
-  service:selectedService,
-  name:name,
-  address:f.address,
-  phone:f.phone,
-  recipientName:f.recipientName,
-  recipientNumber:f.recipientNumber,
-  amount:f.amount,
-  idType:f.idType,
-  source:new URLSearchParams(window.location.search).get('source')==='PC'?'PC':'Online'
-})})
+      body:JSON.stringify({service:selectedService,name:name,phone:f.phone,source:"Online"})})
       .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
       .then(function(res){
         $('takeBtn').disabled=false;
@@ -352,8 +299,7 @@ idType: booking ? '' : $('idType').value
   $('newBtn').addEventListener('click', function(){
     localStorage.removeItem('bahaya_ticket_id'); myTicketId=null;
     selectedService=null;
-    ['name','address','phone','recipientName','recipientNumber','amount'].forEach(function(i){$(i).value='';});
-    $('takeTransfer').classList.remove('show');
+    ['name','phone'].forEach(function(i){$(i).value='';});
     $('services').querySelectorAll('.service-btn').forEach(function(x){x.classList.remove('selected')});
     decideView();
   });
@@ -404,7 +350,7 @@ idType: booking ? '' : $('idType').value
     if(!bSelectedSlot){ $('bErr').textContent='Dooro waqti / Vælg en tid'; return; }
     $('bookBtn').disabled=true;
     fetch('/api/book',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({service:bSelectedService,name:name,time:bSelectedSlot,address:f.address,phone:f.phone,recipientName:f.recipientName,recipientNumber:f.recipientNumber,amount:f.amount})})
+      body:JSON.stringify({service:bSelectedService,name:name,time:bSelectedSlot,phone:f.phone,source:"Online"})})
       .then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});})
       .then(function(res){
         $('bookBtn').disabled=false;
@@ -422,8 +368,7 @@ idType: booking ? '' : $('idType').value
   $('cancelBookBtn').addEventListener('click', function(){
     localStorage.removeItem('bahaya_booking_id'); myBookingId=null;
     bSelectedService=null; bSelectedSlot=null;
-    ['bName','bAddress','bPhone','bRecipientName','bRecipientNumber','bAmount'].forEach(function(i){$(i).value='';});
-    $('bookTransfer').classList.remove('show');
+    ['bName','bPhone'].forEach(function(i){$(i).value='';});
     $('bServices').querySelectorAll('.service-btn').forEach(function(x){x.classList.remove('selected')});
     decideView();
   });
