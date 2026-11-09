@@ -371,7 +371,9 @@ async function handleApi(req, res, url) {
     const name = (body.name || '').trim().slice(0, 40);
     if (!SERVICES.includes(service)) return sendJson(res, 400, { error: 'invalid_service' });
     const f = readCustomerFields(body);
-    const err = validateCustomer(name, service, f);
+    const err = !name ? 'missing_name' :
+  (body.source === 'PC' ? null :
+  (!f.phone ? 'missing_phone' : null));
     if (err) return sendJson(res, 400, { error: err });
 
     const ticket = {
