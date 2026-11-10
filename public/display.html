@@ -58,6 +58,38 @@
 
   footer{text-align:center;padding:1vh;color:var(--muted);font-size:2vh;flex:0 0 auto}
   .clock{font-weight:700;color:#cbd5e1}
+
+  /* Bahaya Shop high-visibility TV theme */
+  :root{--bg:#06152d;--brand:#05c4ff;--green:#0c9b20;--muted:#415e85;--card:#fff}
+  body{background:linear-gradient(130deg,#03132d,#074282 58%,#06132d);color:#071c48}
+  header{background:linear-gradient(110deg,#06142f,#073d79);padding:1vh 0;box-shadow:0 3px 16px #0005}
+  .logo{color:white;font-size:clamp(28px,6vh,85px);letter-spacing:2px}
+  .main{padding:1.5vh 1vw;gap:1.5vw}
+  .called-col{flex:1.3;border:5px solid #118f20;background:#fff;border-radius:28px;padding:1.2vh 1vw;box-shadow:0 5px 20px #0005}
+  .callbox{width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:1vh}
+  .call-label{width:100%;background:linear-gradient(90deg,#007b12,#009e13);color:#fff;border-radius:20px;padding:1.4vh .5vw;font-size:clamp(25px,5.5vh,80px);line-height:1.08;margin:0}
+  .call-label:before{content:'📣 ';font-size:.8em}
+  .call-label .da{color:#fff;font-size:.62em;font-weight:800;margin-top:.5vh}
+  .nr{font-size:clamp(85px,20vh,300px);color:#fff;background:#d50909;border-radius:22px;line-height:1;padding:0 4vw;min-width:38%;text-align:center}
+  .nr small{font-size:5vh;color:#061c4b;position:absolute;transform:translateX(-110%);margin-top:5vh}
+  .cname{font-size:clamp(27px,6vh,90px);background:#cceaff;color:#051d50;border-radius:50px;width:94%;padding:.7vh 1vw;margin:0;overflow-wrap:anywhere}
+  .cservice{font-size:clamp(22px,4vh,58px);color:#fff;background:#7400b5;border-radius:16px;padding:.4vh 3vw;margin:0}
+  .wait-col{background:#f8fbff;border-radius:26px;overflow:hidden;box-shadow:0 5px 20px #0005}
+  .wait-head{background:linear-gradient(100deg,#0756a6,#06316c);color:white;font-size:clamp(22px,4vh,60px);padding:1.5vh 1vw;margin:0}
+  .wait-head .da{color:white;font-size:.65em}.wait-head .count{color:#fff}
+  .wait-list{padding:1vh .8vw;gap:1vh;overflow:hidden}
+  .wait-list:before{content:'NR       Magaca (Navn)                  Adeeg (Service)';display:block;white-space:pre;background:#063c7c;color:white;border-radius:12px;padding:1vh;font-size:clamp(14px,2.2vh,32px);font-weight:800}
+  .wait-row{background:#e5f2ff;border:1px solid #c2e1fc;border-radius:14px;padding:1vh .6vw;min-height:8vh;gap:1vw}
+  .wait-row .wnr{background:#0757a6;color:white;border-radius:10px;text-align:center;padding:.4vh .8vw;min-width:2em;font-size:4vh}
+  .wait-row .wnr small{display:none}
+  .wait-row .wname{color:#091a3b;font-size:clamp(19px,3.3vh,52px)}
+  .wait-row .wsvc{color:#102343;font-size:clamp(13px,2.3vh,34px)}
+  .sdot{flex-shrink:0}
+  .idle .big{color:#062c65}.idle .small,.wait-empty,.wait-more{color:#425b7c}
+  .stat-title{color:#b27400}.stat-sub{color:#183765}
+  footer{background:#05214c;color:white;padding:1vh 1vw;font-size:clamp(14px,2.1vh,28px)}
+  .clock{color:#ffe14a}
+  @media(max-width:700px){.main{gap:1vw}.called-col{flex:1.1}.wait-col{flex:1}.call-label{font-size:3vh}.nr{font-size:13vh}.nr small{font-size:2vh}.cname{font-size:3vh}.cservice{font-size:2.5vh}.wait-head{font-size:2.6vh}.wait-row .wname{font-size:2vh}.wait-row .wsvc{font-size:1.5vh}.wait-list:before{font-size:1.4vh}.wait-row .wnr{font-size:2.8vh}}
 </style>
 </head>
 <body>
@@ -91,7 +123,7 @@
     </div>
   </div>
 
-  <footer><span class="clock" id="clock"></span> &middot; Bahaya Shop Digital Kø</footer>
+  <footer><span id="todayDate"></span> &nbsp; | &nbsp; Saacad: <span class="clock" id="clock"></span> &nbsp; | &nbsp; Waad ku mahadsan tahay sugitaankaaga · Tak for din tålmodighed</footer>
 
 <script>
   var lastSeq = -1;
