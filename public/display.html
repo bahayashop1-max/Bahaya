@@ -184,6 +184,9 @@ window.speechSynthesis.speak(msg);
         '<div class="wnr"><small>NR</small>'+t.number+'</div>'+
         '<div class="wname">'+esc(t.name)+'</div>'+
         '<div class="wsvc"><span class="sdot '+sdotClass(t.service)+'"></span>'+esc(t.service)+'</div>'+
+        
+'<div class="wsource">'+(t.source==='PC'?'🖥️ Dukaanka':'📱 Online')+'</div>'+
+
       '</div>';
     }).join('');
     if(waiting.length>show.length){
