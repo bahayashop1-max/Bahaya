@@ -232,7 +232,8 @@ function publicState() {
       name: t.name,
       status: t.status,
       createdAt: t.createdAt,
-      calledAt: t.calledAt
+      calledAt: t.calledAt,
+source: t.source || 'Online'
     }))
   };
 }
