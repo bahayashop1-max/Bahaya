@@ -1,1 +1,61 @@
+<!doctype html>
+<html lang="so">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bahaya Shop – Safka Dukaanka</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:35px 16px;font-family:system-ui,Arial,sans-serif;color:#0f172a;background:#fff}.wrap{max-width:600px;margin:auto}header{text-align:center;margin-bottom:32px}h1{font-size:36px;margin:0;color:#0876bd}header p{color:#64748b;margin:5px 0}h2{font-size:21px;margin:25px 0 14px}h2 small{display:block;font-size:14px;font-weight:400;color:#64748b}.service{display:flex;align-items:center;gap:17px;width:100%;padding:22px;border:2px solid #e0e8f1;border-radius:19px;background:#f8fafc;font-size:22px;font-weight:700;margin:14px 0;cursor:pointer;text-align:left}.service[aria-pressed=true]{border-color:#0876bd;background:#eaf5ff}.dot{width:18px;height:18px;border-radius:50%;background:#f97316}.bs{background:#14b8a6}input{display:block;width:100%;padding:20px;border:2px solid #e0e8f1;background:#f8fafc;border-radius:18px;font:inherit;font-size:20px;margin:16px 0}#take{width:100%;border:0;border-radius:18px;background:#16a34a;color:white;padding:23px;font-size:22px;font-weight:800;cursor:pointer}#take:disabled{opacity:.6}#error{color:#b91c1c;min-height:24px;margin-top:12px}#result{display:none;background:#eaf5ff;border-radius:20px;text-align:center;padding:28px;margin-top:24px}#number{font-size:75px;font-weight:900;color:#07579b}#again{border:0;border-radius:12px;background:#07579b;color:#fff;padding:14px 20px;font-size:18px;cursor:pointer}footer{text-align:center;color:#64748b;margin-top:35px;font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><h1>BAHAYA SHOP</h1><p>Safka Dukaanka · Kø i butikken</p></header>
+<section id="form">
+<h2>Dooro adeegga <small>Vælg service</small></h2>
+<button type="button" class="service" data-service="MoneyGram" aria-pressed="false"><span class="dot"></span>MoneyGram</button>
+<button type="button" class="service" data-service="Bahaya Shop" aria-pressed="false"><span class="dot bs"></span>Bahaya Shop</button>
+<h2>Macluumaadkaaga <small>Dine oplysninger</small></h2>
+<input id="name" maxlength="40" autocomplete="off" placeholder="Magaca / Navn" aria-label="Magaca / Navn">
+<button id="take" type="button">Qaado nambar / Tag et nummer</button>
+<div id="error" role="alert"></div>
+</section>
+<section id="result" aria-live="polite"><div>Nambarkaaga / Dit nummer</div><div id="number"></div><p id="details"></p><button id="again" type="button">Qof kale / Næste kunde</button></section>
+<footer>PC Dukaanka · Bahaya Shop</footer>
+</div>
+<script>
+'use strict';
+let selectedService='';
+const buttons=[...document.querySelectorAll('.service')];
+buttons.forEach(button=>button.addEventListener('click',()=>{
+ selectedService=button.dataset.service;
+ buttons.forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+ document.getElementById('error').textContent='';
+}));
+document.getElementById('take').addEventListener('click',async()=>{
+ const name=document.getElementById('name').value.trim();
+ const error=document.getElementById('error');
+ error.textContent='';
+ if(!selectedService){error.textContent='Dooro adeeg / Vælg service';return;}
+ if(!name){error.textContent='Qor magaca / Indtast navn';return;}
+ const take=document.getElementById('take');take.disabled=true;
+ try{
+  const response=await fetch('/api/take',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({service:selectedService,name,source:'PC'})});
+  const data=await response.json();
+  if(!response.ok||data.error){throw new Error(data.error==='closed'?'Dukaanku wuu xiran yahay / Butikken er lukket':data.error||'Fadlan isku day mar kale');}
+  if(data.number==null)throw new Error('Nambar lama helin');
+  document.getElementById('number').textContent=data.number;
+  document.getElementById('details').textContent=name+' · '+selectedService;
+  document.getElementById('form').style.display='none';
+  document.getElementById('result').style.display='block';
+ }catch(e){error.textContent=e.message||'Xiriirku wuu fashilmay / Forbindelsesfejl';}
+ finally{take.disabled=false;}
+});
+document.getElementById('again').addEventListener('click',()=>{
+ document.getElementById('name').value='';selectedService='';buttons.forEach(b=>b.setAttribute('aria-pressed','false'));
+ document.getElementById('result').style.display='none';document.getElementById('form').style.display='block';
+});
+</script>
+</body>
+</html>
 
