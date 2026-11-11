@@ -11,7 +11,7 @@
 <body>
 <div class="wrap">
 <header><h1>BAHAYA SHOP</h1><p>Safka Dukaanka · Kø i butikken</p></header>
-<section id="login"><h2>PIN / Adgangskode</h2><input id="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN-ka shaqaalaha"><button id="enter" type="button" style="width:100%;padding:20px;background:#0876bd;color:white;border:0;border-radius:15px;font-size:20px;font-weight:800">Gal / Log ind</button><p id="loginError" role="alert" style="color:#b91c1c"></p></section>
+<section id="login"><h2>PIN / Adgangskode</h2><input id="pin" type="password" inputmode="numeric" autocomplete="new-password" name="shop-pin-manual-entry" readonly maxlength="32" placeholder="PIN-ka shaqaalaha" aria-label="PIN-ka shaqaalaha"><button id="enter" type="button" style="width:100%;padding:20px;background:#0876bd;color:white;border:0;border-radius:15px;font-size:20px;font-weight:800">Gal / Log ind</button><p id="loginError" role="alert" style="color:#b91c1c"></p></section>
 <section id="form" style="display:none">
 <h2>Dooro adeegga <small>Vælg service</small></h2>
 <button type="button" class="service" data-service="MoneyGram" aria-pressed="false"><span class="dot"></span>MoneyGram</button>
@@ -28,14 +28,19 @@
 'use strict';
 let selectedService='';
 let shopPin='';
+const pinInput=document.getElementById('pin');
+pinInput.addEventListener('focus',()=>pinInput.removeAttribute('readonly'));
+pinInput.addEventListener('blur',()=>pinInput.setAttribute('readonly',''));
+
 document.getElementById('enter').addEventListener('click',async()=>{
- const value=document.getElementById('pin').value;
+ const value=pinInput.value;
  const error=document.getElementById('loginError');error.textContent='';
  try {
   const response=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:value})});
   if(!response.ok){error.textContent='PIN khaldan / Forkert adgangskode';return;}
   shopPin=value;
-  document.getElementById('pin').value='';
+  pinInput.value='';
+ pinInput.setAttribute('readonly','');
   document.getElementById('login').style.display='none';
   document.getElementById('form').style.display='block';
  }catch(e){error.textContent='Xiriirku wuu fashilmay / Forbindelsesfejl';}
