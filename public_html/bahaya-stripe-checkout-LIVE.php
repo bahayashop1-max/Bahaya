@@ -39,7 +39,7 @@ $body['metadata[phone]']=mb_substr($input['phone'],0,100);
 $body['metadata[address]']=mb_substr($input['street'].', '.$input['postcode'].' '.$input['city'],0,450);
 $ch=curl_init('https://api.stripe.com/v1/checkout/sessions');
 curl_setopt_array($ch,[CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>http_build_query($body),CURLOPT_RETURNTRANSFER=>true,CURLOPT_TIMEOUT=>20,CURLOPT_HTTPHEADER=>['Authorization: Bearer '.$key,'Content-Type: application/x-www-form-urlencoded']]);
-$res=curl_exec($ch);$status=curl_getinfo($ch,CURLINFO_HTTP_CODE);curl_close($ch);
+$res=curl_exec($ch);$status=curl_getinfo($ch,CURLINFO_HTTP_CODE);
 $data=json_decode($res?:'',true);
 if ($status !== 200 || empty($data['url'])) {
     error_log('BAHAYA STRIPE LIVE: HTTP ' . $status . ' - ' . ($data['error']['type'] ?? 'unknown') . ' - ' . ($data['error']['code'] ?? 'no_code'));
