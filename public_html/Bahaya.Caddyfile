@@ -1,0 +1,10 @@
+{
+    auto_https off
+    frankenphp
+}
+
+:8090 {
+    root * /app/public
+    respond /healthz "ok" 200
+    php_server
+}

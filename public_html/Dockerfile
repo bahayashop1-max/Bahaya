@@ -1,10 +1,7 @@
-FROM php:8.4-apache
-RUN php -r 'exit(extension_loaded("curl") && extension_loaded("mbstring") ? 0 : 1);' \
-    && sed -i 's/^Listen 80$/Listen 8090/' /etc/apache2/ports.conf \
-    && sed -i 's/<VirtualHost \*:80>/<VirtualHost *:8090>/' /etc/apache2/sites-available/000-default.conf \
-    && a2dismod mpm_event mpm_worker \
-    && a2enmod mpm_prefork \
-    && apache2ctl -t \
-    && printf 'ok\n' > /var/www/html/healthz
-COPY bahaya-stripe-checkout-LIVE.php /var/www/html/
+FROM dunglas/frankenphp:php8.4
+RUN install-php-extensions curl mbstring
+COPY Bahaya.Caddyfile /etc/caddy/Bahaya.Caddyfile
+COPY bahaya-stripe-checkout-LIVE.php /app/public/
+RUN frankenphp validate --config /etc/caddy/Bahaya.Caddyfile --adapter caddyfile
 EXPOSE 8090
+CMD ["frankenphp", "run", "--config", "/etc/caddy/Bahaya.Caddyfile", "--adapter", "caddyfile"]
