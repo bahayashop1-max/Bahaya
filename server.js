@@ -256,7 +256,8 @@ function adminState() {
       status: t.status, createdAt: t.createdAt, calledAt: t.calledAt,
       address: t.address || '', phone: t.phone || '',
       recipientName: t.recipientName || '', recipientNumber: t.recipientNumber || '',
-      amount: t.amount || ''
+      amount: t.amount || '',
+      source: (t.source === 'PC' || t.source === 'dukaan' || t.source === 'Dukaanka') ? 'Dukaanka' : 'Online'
     };
   });
   return base;
@@ -389,7 +390,7 @@ async function handleApi(req, res, url) {
       amount: f.amount,
       idType: f.idType,
 currency: f.currency,
-source: body.source === 'PC' ? 'PC' : 'Online',      
+source: body.source === 'PC' || body.source === 'Dukaanka' || body.source === 'dukaan' ? 'Dukaanka' : 'Online',      
       status: 'waiting',
       createdAt: Date.now(),
       calledAt: null
