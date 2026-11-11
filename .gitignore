@@ -8,3 +8,9 @@ cloudflared*.exe
 # Node
 node_modules/
 npm-debug.log
+
+# Stripe credentials
+.env
+.env.*
+!.env.example
+bahaya-stripe-private*.php
