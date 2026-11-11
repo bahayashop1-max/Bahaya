@@ -365,6 +365,28 @@ async function handleApi(req, res, url) {
     });
   }
 
+  // Protected in-store registration. A public customer cannot spoof a shop ticket.
+  if (route === '/api/shop-take' && req.method === 'POST') {
+    if (!isAdmin(req)) return sendJson(res, 401, { error: 'unauthorized' });
+    if (!isOpenNow()) return sendJson(res, 403, { error: 'closed' });
+    const body = await readBody(req);
+    const service = String(body.service || '').trim();
+    const name = String(body.name || '').trim().slice(0, 40);
+    if (!SERVICES.includes(service)) return sendJson(res, 400, { error: 'invalid_service' });
+    if (!name) return sendJson(res, 400, { error: 'missing_name' });
+    const ticket = {
+      id: makeId(), number: state.nextNumber++, service, name,
+      address: '', phone: '', recipientName: '', recipientNumber: '',
+      amount: '', idType: '', currency: '',
+      source: 'Dukaanka', status: 'waiting', createdAt: Date.now(), calledAt: null
+    };
+    state.tickets.push(ticket);
+    saveState();
+    return sendJson(res, 200, { id: ticket.id, number: ticket.number,
+      name: ticket.name, service: ticket.service, status: ticket.status,
+      ahead: peopleAhead(ticket), source: ticket.source });
+  }
+
   // Kunden tager et nummer (kun i åbningstiden)
   if (route === '/api/take' && req.method === 'POST') {
     if (!isOpenNow()) return sendJson(res, 403, { error: 'closed' });
@@ -374,8 +396,7 @@ async function handleApi(req, res, url) {
     if (!SERVICES.includes(service)) return sendJson(res, 400, { error: 'invalid_service' });
     const f = readCustomerFields(body);
     const err = !name ? 'missing_name' :
-  (body.source === 'PC' ? null :
-  (!f.phone ? 'missing_phone' : null));
+  (!f.phone ? 'missing_phone' : null);
     if (err) return sendJson(res, 400, { error: err });
 
     const ticket = {
