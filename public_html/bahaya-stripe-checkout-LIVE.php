@@ -2,6 +2,18 @@
 // LIVE checkout. Read the Stripe key from the server environment or a private .env file.
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+$allowedOrigin = in_array($origin, ['https://www.bahayashop.dk', 'https://bahayashop.dk'], true);
+header('Vary: Origin');
+if ($allowedOrigin) {
+    header('Access-Control-Allow-Origin: ' . $origin);
+}
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS' && $allowedOrigin) {
+    header('Access-Control-Allow-Methods: POST');
+    header('Access-Control-Allow-Headers: Content-Type');
+    http_response_code(204);
+    exit;
+}
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {http_response_code(405);echo json_encode(['error'=>'POST required']);exit;}
 if (!extension_loaded('curl') || !extension_loaded('mbstring')) {http_response_code(500);echo json_encode(['error'=>'PHP cURL eller mbstring mangler']);exit;}
 $key = getenv('STRIPE_SECRET_KEY');
