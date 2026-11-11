@@ -329,8 +329,8 @@
         '<div class="nr"><small>NR</small>'+t.number+'</div>'+
         '<div class="info"><div class="name">'+esc(t.name)+'</div>'+
           '<div class="svc"><span class="sdot '+sdotClass(t.service)+'"></span>'+esc(t.service)+'</div>'+
-          '<div class="source-tag'+(t.source==='dukaan'?' shop':'')+'">'+
-          (t.source==='dukaan'?'Dukaanka':'Online')+'</div>'+
+          '<div class="source-tag'+(t.source==='Dukaanka'||t.source==='PC'||t.source==='dukaan'?' shop':'')+'">'+
+          (t.source==='Dukaanka'||t.source==='PC'||t.source==='dukaan'?'Dukaanka':'Online')+'</div>'+
           staffDetail(t)+'</div>'+
         '<div class="actions">'+
           (called
