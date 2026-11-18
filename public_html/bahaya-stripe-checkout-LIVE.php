@@ -22,7 +22,7 @@ if ($key === false) {
     $env = @parse_ini_file(dirname(__DIR__) . '/.env', false, INI_SCANNER_RAW);
     $key = is_array($env) ? ($env['STRIPE_SECRET_KEY'] ?? null) : null;
 }
-if (!is_string($key) || !preg_match('/\Ark_live_[A-Za-z0-9]+\z/', $key)) {
+if (!is_string($key) || !preg_match('/\A(?:sk|rk)_live_[A-Za-z0-9]+\z/', $key)) {
     http_response_code(503);
     echo json_encode(['error' => 'Stripe LIVE-nøgle er ikke konfigureret']);
     exit;
