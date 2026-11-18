@@ -331,7 +331,7 @@
           '<div class="svc"><span class="sdot '+sdotClass(t.service)+'"></span>'+esc(t.service)+'</div>'+
           '<div class="source-tag'+(t.source==='Dukaanka'||t.source==='PC'||t.source==='dukaan'?' shop':'')+'">'+
           (t.source==='Dukaanka'||t.source==='PC'||t.source==='dukaan'?'Dukaanka':'Online')+'</div>'+
-          staffDetail(t)+'</div>'+
+          staffDetail(t)+'<div class="arrival-time">📅 '+formatArrival(t.createdAt)+'</div></div>'+
         '<div class="actions">'+
           (called
             ? '<span class="called-badge">Kaldt ind &check;</span><button class="done" onclick="markDone(\''+t.id+'\')">Færdig</button>'
@@ -339,6 +339,16 @@
         '</div>'+
       '</div>';
     }).join('');
+  }
+
+  function formatArrival(timestamp){
+    if(timestamp===undefined || timestamp===null || timestamp==='') return 'Tidspunkt ikke registreret';
+    var date = new Date(timestamp);
+    if(isNaN(date.getTime())) return 'Tidspunkt ikke registreret';
+    return new Intl.DateTimeFormat('da-DK',{
+      timeZone:'Europe/Copenhagen',day:'2-digit',month:'2-digit',year:'numeric',
+      hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'
+    }).format(date);
   }
 
   function esc(s){return String(s).replace(/[&<>"']/g,function(c){
