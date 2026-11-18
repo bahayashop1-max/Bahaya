@@ -61,7 +61,11 @@
   .name{font-size:19px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .source-tag{display:inline-block;margin-top:5px;padding:3px 9px;border-radius:8px;font-size:12px;font-weight:800;background:#0b3a54;color:#7dd3fc}
   .source-tag.shop{background:#164e2b;color:#86efac}
-  .arrival-time{color:#cbd5e1;font-size:13px;font-weight:600;margin-top:7px;line-height:1.6}\n  .row-detail{color:var(--muted);font-size:12px;margin-top:5px;line-height:1.5;word-break:break-word}
+  .name-line{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .name-line .name{white-space:normal;overflow:visible}
+  .arrival-clock{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:10px;background:#fef08a;color:#172554;font-size:24px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:.5px;white-space:nowrap}
+  .arrival-date{color:#cbd5e1;font-size:13px;font-weight:600;margin-top:7px}
+  .row-detail{color:var(--muted);font-size:12px;margin-top:5px;line-height:1.5;word-break:break-word}
   .svc{color:var(--muted);font-size:14px;display:flex;align-items:center;gap:6px;margin-top:2px}
   .sdot{width:10px;height:10px;border-radius:50%}
   .sdot.MoneyGram{background:#f97316}.sdot.Ria{background:#a855f7}.sdot.Western{background:#facc15}.sdot.Bahaya{background:#14b8a6}
@@ -327,11 +331,11 @@
       var called = t.status==='called';
       return '<div class="row'+(called?' called':'')+'">'+
         '<div class="nr"><small>NR</small>'+t.number+'</div>'+
-        '<div class="info"><div class="name">'+esc(t.name)+'</div>'+
+        '<div class="info"><div class="name-line"><div class="name">'+esc(t.name)+'</div><span class="arrival-clock" title="Ankomsttid">🕒 '+formatArrivalClock(t.createdAt)+'</span></div>'+
           '<div class="svc"><span class="sdot '+sdotClass(t.service)+'"></span>'+esc(t.service)+'</div>'+
           '<div class="source-tag'+(t.source==='Dukaanka'||t.source==='PC'||t.source==='dukaan'?' shop':'')+'">'+
           (t.source==='Dukaanka'||t.source==='PC'||t.source==='dukaan'?'Dukaanka':'Online')+'</div>'+
-          staffDetail(t)+'<div class="arrival-time">📅 Ankomstdato: '+formatArrivalDate(t.createdAt)+' &nbsp; 🕒 Ankomsttid: '+formatArrivalClock(t.createdAt)+'</div></div>'+
+          staffDetail(t)+'<div class="arrival-date">📅 Ankomstdato: '+formatArrivalDate(t.createdAt)+'</div></div>'+
         '<div class="actions">'+
           (called
             ? '<span class="called-badge">Kaldt ind &check;</span><button class="done" onclick="markDone(\''+t.id+'\')">Færdig</button>'
