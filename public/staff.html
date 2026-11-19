@@ -61,6 +61,7 @@
   .name{font-size:19px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .source-tag{display:inline-block;margin-top:5px;padding:3px 9px;border-radius:8px;font-size:12px;font-weight:800;background:#0b3a54;color:#7dd3fc}
   .source-tag.shop{background:#164e2b;color:#86efac}
+  .source-tag{font-size:14px;padding:5px 11px;border:1px solid currentColor}
   .name-line{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
   .name-line .name{white-space:normal;overflow:visible;margin-left:auto;margin-right:0}
   /* Move customer name and arrival badges together toward the call-in button. */
@@ -337,7 +338,7 @@
         '<div class="info"><div class="name-line"><div class="name">'+esc(t.name)+'</div><span class="arrival-clock" title="Ankomsttid">🕒 '+formatArrivalClock(t.createdAt)+'</span><span class="arrival-date" title="Ankomstdato">📅 '+formatArrivalDate(t.createdAt)+'</span></div>'+
           '<div class="svc"><span class="sdot '+sdotClass(t.service)+'"></span>'+esc(t.service)+'</div>'+
           '<div class="source-tag'+(t.source==='Dukaanka'||t.source==='PC'||t.source==='dukaan'?' shop':'')+'">'+
-          (t.source==='Dukaanka'||t.source==='PC'||t.source==='dukaan'?'Dukaanka':'Online')+'</div>'+
+          (t.source==='Dukaanka'||t.source==='PC'||t.source==='dukaan'?'🖥️ PC Dukaanka':t.source==='Online'?'🌐 Online':'❔ Lama yaqaan')+'</div>'+
           staffDetail(t)+'</div>'+
         '<div class="actions">'+
           (called
