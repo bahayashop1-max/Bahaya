@@ -84,6 +84,8 @@
   .wait-row .wnr small{display:none}
   .wait-row .wname{color:#091a3b;font-size:clamp(19px,3.3vh,52px)}
   .wait-row .wsvc{color:#102343;font-size:clamp(13px,2.3vh,34px)}
+  .wait-row .wtime{font-size:clamp(13px,2.3vh,28px);font-weight:800;color:#063c7c;white-space:nowrap;text-align:center;background:#fff;border-radius:9px;padding:.5vh .6vw;font-variant-numeric:tabular-nums}
+  .wait-row .wtime small{display:block;font-size:.75em;font-weight:700;color:#425b7c}
   .sdot{flex-shrink:0}
   .idle .big{color:#062c65}.idle .small,.wait-empty,.wait-more{color:#425b7c}
   .stat-title{color:#b27400}.stat-sub{color:#183765}
@@ -98,7 +100,6 @@
 <body>
   <header><div class="logo">BAHAYA <span>SHOP</span></div></header>
 
-  <div class="date-time-display"><span class="display-date" id="topDate"></span><span class="display-clock" id="topClock"></span></div>
   <div class="main">
     <!-- Kaldt ind nu -->
     <div class="called-col">
@@ -173,6 +174,15 @@ window.speechSynthesis.speak(msg);
     chime();
   }
 
+  function arrivalTime(t){
+    var raw=t.createdAt;
+    if(raw==null || raw==='') return '<div class="wtime">—<small>Tid ukendt</small></div>';
+    var n=new Date(typeof raw==='number' && raw<1e11 ? raw*1000 : raw);
+    if(isNaN(n.getTime())) return '<div class="wtime">—<small>Tid ukendt</small></div>';
+    var date=new Intl.DateTimeFormat('da-DK',{timeZone:'Europe/Copenhagen',day:'2-digit',month:'2-digit',year:'numeric'}).format(n);
+    var time=new Intl.DateTimeFormat('da-DK',{timeZone:'Europe/Copenhagen',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(n);
+    return '<div class="wtime">'+esc(time)+'<small>'+esc(date)+'</small></div>';
+  }
   function renderWaiting(tickets){
     var waiting = tickets.filter(function(t){return t.status==='waiting';});
     waiting.sort(function(a,b){return a.number-b.number;});
@@ -186,7 +196,7 @@ window.speechSynthesis.speak(msg);
     var html = show.map(function(t){
       return '<div class="wait-row">'+
         '<div class="wnr"><small>NR</small>'+t.number+'</div>'+
-        '<div class="wname">'+esc(t.name)+'</div>'+
+        '<div class="wname">'+esc(t.name)+'</div>'+arrivalTime(t)+
         '<div class="wsvc"><span class="sdot '+sdotClass(t.service)+'"></span>'+esc(t.service)+'</div>'+
         
 '<div class="wsource">'+((t.source==='Dukaanka'||t.source==='PC')?'🖥️ Dukaanka':'📱 Online')+'</div>'+
@@ -249,8 +259,6 @@ window.speechSynthesis.speak(msg);
     var n=new Date();
     var date=new Intl.DateTimeFormat('da-DK',{timeZone:'Europe/Copenhagen',weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(n);
     var time=new Intl.DateTimeFormat('da-DK',{timeZone:'Europe/Copenhagen',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).format(n);
-    document.getElementById('topDate').textContent=date;
-    document.getElementById('topClock').textContent=time;
     document.getElementById('todayDate').textContent=date;
     document.getElementById('clock').textContent=time;
   }
