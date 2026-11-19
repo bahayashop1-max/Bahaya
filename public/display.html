@@ -89,12 +89,16 @@
   .stat-title{color:#b27400}.stat-sub{color:#183765}
   footer{background:#05214c;color:white;padding:1vh 1vw;font-size:clamp(14px,2.1vh,28px)}
   .clock{color:#ffe14a}
+  .date-time-display{display:flex;align-items:center;justify-content:center;gap:2vw;flex-wrap:wrap;background:#082b5a;color:#fff;padding:.6vh 2vw;font-weight:800}
+  .date-time-display .display-date{font-size:clamp(20px,3.5vh,46px)}
+  .date-time-display .display-clock{font-size:clamp(30px,5.5vh,76px);color:#ffe14a;font-variant-numeric:tabular-nums}
   @media(max-width:700px){.main{gap:1vw}.called-col{flex:1.1}.wait-col{flex:1}.call-label{font-size:3vh}.nr{font-size:13vh}.nr small{font-size:2vh}.cname{font-size:3vh}.cservice{font-size:2.5vh}.wait-head{font-size:2.6vh}.wait-row .wname{font-size:2vh}.wait-row .wsvc{font-size:1.5vh}.wait-list:before{font-size:1.4vh}.wait-row .wnr{font-size:2.8vh}}
 </style>
 </head>
 <body>
   <header><div class="logo">BAHAYA <span>SHOP</span></div></header>
 
+  <div class="date-time-display"><span class="display-date" id="topDate"></span><span class="display-clock" id="topClock"></span></div>
   <div class="main">
     <!-- Kaldt ind nu -->
     <div class="called-col">
@@ -243,10 +247,14 @@ window.speechSynthesis.speak(msg);
 
   function tick(){
     var n=new Date();
-    document.getElementById('clock').textContent =
-      String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+    var date=new Intl.DateTimeFormat('da-DK',{timeZone:'Europe/Copenhagen',weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(n);
+    var time=new Intl.DateTimeFormat('da-DK',{timeZone:'Europe/Copenhagen',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).format(n);
+    document.getElementById('topDate').textContent=date;
+    document.getElementById('topClock').textContent=time;
+    document.getElementById('todayDate').textContent=date;
+    document.getElementById('clock').textContent=time;
   }
-  tick(); setInterval(tick, 10000);
+  tick(); setInterval(tick,1000);
 
   function chime(){
     try{
