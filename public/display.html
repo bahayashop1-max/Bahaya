@@ -78,7 +78,7 @@
   .wait-head{background:linear-gradient(100deg,#0756a6,#06316c);color:white;font-size:clamp(22px,4vh,60px);padding:1.5vh 1vw;margin:0}
   .wait-head .da{color:white;font-size:.65em}.wait-head .count{color:#fff}
   .wait-list{padding:1vh .8vw;gap:1vh;overflow:hidden}
-  .wait-list:before{content:'NR       Magaca (Navn)                  Adeeg (Service)';display:block;white-space:pre;background:#063c7c;color:white;border-radius:12px;padding:1vh;font-size:clamp(14px,2.2vh,32px);font-weight:800}
+  .wait-list:before{content:'NR    Magaca (Navn)       Taariikh (Dato)      Saacad (Tid)       Adeeg (Service)';display:block;white-space:nowrap;background:#063c7c;color:white;border-radius:12px;padding:1vh .6vw;font-size:clamp(11px,1.7vh,26px);font-weight:800;overflow:hidden}
   .wait-row{background:#e5f2ff;border:1px solid #c2e1fc;border-radius:14px;padding:1vh .6vw;min-height:8vh;gap:1vw}
   .wait-row .wnr{background:#0757a6;color:white;border-radius:10px;text-align:center;padding:.4vh .8vw;min-width:2em;font-size:4vh}
   .wait-row .wnr small{display:none}
@@ -91,6 +91,13 @@
   .stat-title{color:#b27400}.stat-sub{color:#183765}
   footer{background:#05214c;color:white;padding:1vh 1vw;font-size:clamp(14px,2.1vh,28px)}
   .clock{color:#ffe14a}
+  .wait-row{gap:.6vw!important;padding:1vh .5vw!important}
+  .wait-row .wnr{order:0;flex-shrink:0}
+  .wait-row .wname{order:1;flex:1 1 12%;min-width:0}
+  .wait-row .wdate{order:2;background:#dbeafe;color:#102451;border-radius:10px;padding:.6vh .5vw;font-size:clamp(11px,1.8vh,27px);font-weight:900;white-space:nowrap;flex-shrink:0}
+  .wait-row .wtime{order:3;background:#ffec84;color:#102451;border-radius:10px;padding:.6vh .5vw;font-size:clamp(12px,2.2vh,32px);font-weight:900;white-space:nowrap;flex-shrink:0}
+  .wait-row .wsvc{order:4;min-width:0;white-space:nowrap;font-size:clamp(11px,1.8vh,27px)}
+  .wait-row .wsource{order:5;white-space:nowrap;flex-shrink:0;font-size:clamp(11px,1.7vh,25px)}
   .date-time-display{display:flex;align-items:center;justify-content:center;gap:2vw;flex-wrap:wrap;background:#082b5a;color:#fff;padding:.6vh 2vw;font-weight:800}
   .date-time-display .display-date{font-size:clamp(20px,3.5vh,46px)}
   .date-time-display .display-clock{font-size:clamp(30px,5.5vh,76px);color:#ffe14a;font-variant-numeric:tabular-nums}
@@ -176,12 +183,12 @@ window.speechSynthesis.speak(msg);
 
   function arrivalTime(t){
     var raw=t.createdAt;
-    if(raw==null || raw==='') return '<div class="wtime">—<small>Tid ukendt</small></div>';
+    if(raw==null || raw==='') return '<div class="wdate">—</div><div class="wtime">—</div>';
     var n=new Date(typeof raw==='number' && raw<1e11 ? raw*1000 : raw);
     if(isNaN(n.getTime())) return '<div class="wtime">—<small>Tid ukendt</small></div>';
     var date=new Intl.DateTimeFormat('da-DK',{timeZone:'Europe/Copenhagen',day:'2-digit',month:'2-digit',year:'numeric'}).format(n);
     var time=new Intl.DateTimeFormat('da-DK',{timeZone:'Europe/Copenhagen',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(n);
-    return '<div class="wtime">'+esc(time)+'<small>'+esc(date)+'</small></div>';
+    return '<div class="wdate">📅 '+esc(date)+'</div><div class="wtime">🕒 '+esc(time)+'</div>';
   }
   function renderWaiting(tickets){
     var waiting = tickets.filter(function(t){return t.status==='waiting';});
