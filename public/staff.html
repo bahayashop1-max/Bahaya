@@ -243,9 +243,24 @@
     fetch('/api/reset',{method:'POST',headers:adminHeaders()}).then(checkAuth).then(load).catch(function(){});
   });
 
+  function speakCustomer(ticket){
+    if(!ticket || !('speechSynthesis' in window)) return;
+    var synth=window.speechSynthesis;
+    var msg=new SpeechSynthesisUtterance('Nummer '+ticket.number+'. '+(ticket.name||'')+'. Kom venligst ind.');
+    msg.lang='da-DK'; msg.rate=0.85; msg.volume=1;
+    var voice=synth.getVoices().find(function(v){return /^da([-_]|$)/i.test(v.lang);});
+    if(voice) msg.voice=voice;
+    synth.cancel(); synth.speak(msg);
+  }
+  if('speechSynthesis' in window) window.speechSynthesis.getVoices();
   function callIn(id){
+    var ticket=lastData && lastData.tickets.find(function(t){return t.id===id;});
     fetch('/api/call',{method:'POST',headers:adminHeaders(),
-      body:JSON.stringify({id:id})}).then(checkAuth).then(load).catch(function(){});
+      body:JSON.stringify({id:id})}).then(checkAuth).then(function(r){
+        if(!r.ok) throw new Error('call failed');
+        speakCustomer(ticket);
+        return load();
+      }).catch(function(){});
   }
   function markDone(id){
     fetch('/api/done',{method:'POST',headers:adminHeaders(),
@@ -260,7 +275,6 @@
     });
     if(waiting.length===0){ buzz(); return; }
     waiting.sort(function(a,b){return a.number-b.number;});
-    ding();
     callIn(waiting[0].id);
   }
 
